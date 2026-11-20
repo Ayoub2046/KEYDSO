@@ -23,6 +23,7 @@ import { FacultyWorkspace } from './features/governance/FacultyWorkspace';
 import { CommitteesManager } from './features/governance/CommitteesManager';
 import { MeetingsManager } from './features/governance/MeetingsManager';
 import { FacultyChallengesPage } from './features/governance/FacultyChallengesPage';
+import { ReportsDashboard } from './features/reports/ReportsDashboard';
 import { RoleName } from '@keydso/shared-types';
 
 export const App: React.FC = () => {
@@ -98,6 +99,26 @@ export const App: React.FC = () => {
 
           {/* Challenges / Issues (Open to All Authenticated Users) */}
           <Route path="/governance/challenges" element={<FacultyChallengesPage />} />
+
+          {/* Reports & Analytics Routes */}
+          <Route
+            element={
+              <ProtectedRoute
+                allowedRoles={[
+                  RoleName.SYSTEM_ADMIN,
+                  RoleName.GENERAL_PRESIDENT,
+                  RoleName.VICE_PRESIDENT,
+                  RoleName.FINANCE_OFFICER,
+                  RoleName.SECRETARY,
+                  RoleName.FACULTY_PRESIDENT,
+                  RoleName.COMMITTEE_CHAIR,
+                  RoleName.COMMITTEE_MEMBER,
+                ]}
+              />
+            }
+          >
+            <Route path="/reports" element={<ReportsDashboard />} />
+          </Route>
 
           {/* Admin Restricted Routes */}
           <Route element={<ProtectedRoute allowedRoles={[RoleName.SYSTEM_ADMIN]} />}>

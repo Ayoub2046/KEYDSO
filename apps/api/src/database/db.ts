@@ -433,6 +433,62 @@ export class InMemoryDatabase implements IDatabaseClient {
       },
     ];
 
+    // Seed Initial General Ledger entries (Balanced Treasury Position)
+    this.ledgerEntries = [
+      {
+        id: '95000000-0000-0000-0000-000000000001',
+        fund_id: genFund.id,
+        entry_type: 'CREDIT',
+        amount: 1745.0,
+        balance_after: 1745.0,
+        reference_type: 'OPENING_BALANCE',
+        reference_id: genFund.id,
+        description: 'Initial Council Treasury Opening Balance for Academic Year 2025/2026',
+        created_by: adminUser.id,
+        created_at: '2026-02-01T08:00:00Z',
+      },
+      {
+        id: '95000000-0000-0000-0000-000000000002',
+        fund_id: genFund.id,
+        entry_type: 'CREDIT',
+        amount: 25.0,
+        balance_after: 1770.0,
+        reference_type: 'STUDENT_PAYMENT',
+        reference_id: payment.id,
+        description: 'Verified student contribution for Safia Abdirahman Hassan (STU-2024-001)',
+        created_by: adminUser.id,
+        created_at: '2026-02-05T09:30:00Z',
+      },
+      {
+        id: '95000000-0000-0000-0000-000000000003',
+        fund_id: genFund.id,
+        entry_type: 'DEBIT',
+        amount: 320.0,
+        balance_after: 1450.0,
+        reference_type: 'EXPENSE_DISBURSEMENT',
+        reference_id: expense.id,
+        description: 'Disbursement: IT Lab Network Switches & High-Speed Patch Cables',
+        created_by: adminUser.id,
+        created_at: '2026-02-10T10:00:00Z',
+      },
+    ];
+
+    // Seed Sample Welfare Case (Strictly Confidential)
+    this.supportCases = [
+      {
+        id: 'a2000000-0000-0000-0000-000000000001',
+        case_number: 'WLF-2026-0001',
+        student_id: demoStudent.id,
+        confidential_reason: 'Emergency textbook and medical subsidy due to familial distress.',
+        requested_amount: 50.0,
+        approved_amount: 50.0,
+        status: 'DISBURSED',
+        welfare_reviewer_id: engRepUser.id,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      },
+    ];
+
     // Seed Announcements
     this.announcements = [
       {

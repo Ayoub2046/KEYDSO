@@ -20,6 +20,7 @@ import {
   Briefcase,
   Calendar,
   AlertTriangle,
+  BarChart3,
 } from 'lucide-react';
 
 export const Sidebar: React.FC = () => {
@@ -168,6 +169,21 @@ export const Sidebar: React.FC = () => {
           </div>
         )}
 
+        {/* Reports & Analytics — visible to executive, finance, faculty reps */}
+        {(isExecutive || isFinance || isFacultyPres || isSecretary || isCommitteeMember) && (
+          <div>
+            <div className="px-3 mb-2 text-xs font-semibold tracking-wider text-slate-400 uppercase">
+              Reports & Analytics
+            </div>
+            <nav className="space-y-1">
+              <NavLink to="/reports" className={navLinkClass}>
+                <BarChart3 className="w-4 h-4 text-cyan-400" />
+                <span>Analytics Dashboard</span>
+              </NavLink>
+            </nav>
+          </div>
+        )}
+
         {isAdmin && (
           <div>
             <div className="px-3 mb-2 text-xs font-semibold tracking-wider text-slate-400 uppercase">
@@ -200,7 +216,7 @@ export const Sidebar: React.FC = () => {
 
       <div className="p-4 border-t border-slate-800 text-xs text-slate-400">
         <p className="font-semibold text-slate-300">Keydso Maanta PWA</p>
-        <p className="mt-0.5">Phase 4: Governance Ready</p>
+        <p className="mt-0.5">Phase 5: Reports & Analytics Ready</p>
       </div>
     </aside>
   );

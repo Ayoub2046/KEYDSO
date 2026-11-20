@@ -26,6 +26,10 @@ import {
   MeetingAndTraining,
   IssueReport,
   CouncilDashboardOverview,
+  FinancialAnalyticsOverview,
+  FacultyPerformanceReport,
+  CommitteeGovernanceAnalytics,
+  AuditExportReport,
 } from '@keydso/shared-types';
 
 const API_BASE = '/api/v1';
@@ -246,4 +250,34 @@ export const api = {
 
   // Governance: Dashboard Overview
   getCouncilDashboard: () => request<CouncilDashboardOverview>('/governance/dashboard'),
+
+  // Reports & Analytics
+  getFinancialOverview: (params?: { faculty_id?: string; start_date?: string; end_date?: string }) => {
+    const qs = params ? '?' + new URLSearchParams(Object.entries(params).filter(([, v]) => !!v) as any).toString() : '';
+    return request<FinancialAnalyticsOverview>(`/reports/financial-overview${qs}`);
+  },
+  getFacultyPerformance: (params?: { faculty_id?: string }) => {
+    const qs = params?.faculty_id ? `?faculty_id=${params.faculty_id}` : '';
+    return request<FacultyPerformanceReport[]>(`/reports/faculty-performance${qs}`);
+  },
+  getGovernanceAnalytics: () => request<CommitteeGovernanceAnalytics>('/reports/governance-analytics'),
+  getAuditExport: (reportType?: string) => {
+    const qs = reportType ? `?report_type=${reportType}` : '';
+    return request<AuditExportReport>(`/reports/audit-export${qs}`);
+  },
+  downloadFinancialCsv: async () => {
+    const token = localStorage.getItem('keydso_token');
+    const headers: Record<string, string> = token ? { Authorization: `Bearer ${token}` } : {};
+    const res = await fetch('/api/v1/reports/export/financial-csv', { headers });
+    if (!res.ok) throw new Error('CSV download failed');
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `keydso_financial_audit_${new Date().toISOString().substring(0, 10)}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+  },
 };

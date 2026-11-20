@@ -558,6 +558,118 @@ export interface AuditLogEntry {
   new_state?: Record<string, unknown> | null;
 }
 
+// --- Analytics & Reports Domain Types ---
+export interface CampaignAnalyticsItem {
+  campaign_id: string;
+  title: string;
+  type: CampaignType;
+  target_amount: number;
+  collected_amount: number;
+  collection_rate: number;
+  student_count: number;
+  paid_student_count: number;
+  status: CampaignStatus;
+}
+
+export interface FacultyCollectionItem {
+  faculty_id: string;
+  faculty_name: string;
+  faculty_code: string;
+  total_students: number;
+  expected_amount: number;
+  collected_amount: number;
+  collection_rate: number;
+  outstanding_amount: number;
+}
+
+export interface ExpenseCategoryBreakdown {
+  category: string;
+  total_amount: number;
+  percentage: number;
+  count: number;
+}
+
+export interface CashflowTrendItem {
+  period: string; // e.g. "2026-11"
+  credits: number;
+  debits: number;
+  net: number;
+}
+
+export interface FinancialAnalyticsOverview {
+  total_expected_revenue: number;
+  total_collected_revenue: number;
+  collection_rate_percentage: number;
+  total_expenses_disbursed: number;
+  total_welfare_disbursed: number;
+  net_available_cash: number;
+  total_outstanding_debt: number;
+  total_verified_transactions: number;
+  total_pending_verifications: number;
+  campaign_breakdown: CampaignAnalyticsItem[];
+  faculty_collection_breakdown: FacultyCollectionItem[];
+  expense_category_breakdown: ExpenseCategoryBreakdown[];
+  cashflow_trend: CashflowTrendItem[];
+}
+
+export interface FacultyPerformanceReport {
+  faculty_id: string;
+  faculty_name: string;
+  faculty_code: string;
+  dean_or_representative_name: string;
+  total_students: number;
+  total_expected: number;
+  total_collected: number;
+  collection_rate: number;
+  outstanding_balance: number;
+  total_challenges: number;
+  resolved_challenges: number;
+  resolution_rate: number;
+  meetings_conducted: number;
+  total_attendance: number;
+  performance_score: number; // 0-100 composite index
+}
+
+export interface CommitteeGovernanceAnalytics {
+  total_committees: number;
+  total_active_members: number;
+  total_tasks_assigned: number;
+  tasks_completed: number;
+  task_completion_rate: number;
+  committee_breakdowns: {
+    committee_id: string;
+    name: string;
+    code: string;
+    chairperson: string;
+    member_count: number;
+    task_count: number;
+    completed_task_count: number;
+    completion_rate: number;
+  }[];
+  meeting_analytics: {
+    total_meetings: number;
+    completed_meetings: number;
+    average_attendance: number;
+    meetings_by_type: Record<string, number>;
+  };
+}
+
+export interface AuditExportReport {
+  generated_at: string;
+  generated_by: string;
+  generated_by_role: string;
+  report_type: 'FINANCIAL_AUDIT' | 'GOVERNANCE_AUDIT' | 'COMPREHENSIVE_AUDIT';
+  academic_year: string;
+  summary: Record<string, unknown>;
+  ledger_verification: {
+    total_credits: number;
+    total_debits: number;
+    reconciled: boolean;
+    checksum: string;
+  };
+  records_count: number;
+}
+
 // --- API Standard Wrappers ---
 export interface ApiResponse<T = unknown> {
   success: boolean;

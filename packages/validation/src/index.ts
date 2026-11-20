@@ -330,3 +330,20 @@ export const ResolveIssueSchema = z.object({
   resolution_notes: z.string().trim().min(5, 'Resolution notes are required for resolution audit'),
 });
 export type ResolveIssueInput = z.infer<typeof ResolveIssueSchema>;
+
+// --- Reports & Analytics Schemas ---
+export const ReportFilterQuerySchema = z.object({
+  academic_year_id: z.string().uuid('Invalid academic year UUID').optional(),
+  faculty_id: z.string().uuid('Invalid faculty UUID').optional(),
+  start_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Must be YYYY-MM-DD').optional(),
+  end_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Must be YYYY-MM-DD').optional(),
+  format: z.enum(['json', 'csv']).default('json').optional(),
+});
+export type ReportFilterQueryInput = z.infer<typeof ReportFilterQuerySchema>;
+
+export const AuditExportQuerySchema = z.object({
+  report_type: z.enum(['FINANCIAL_AUDIT', 'GOVERNANCE_AUDIT', 'COMPREHENSIVE_AUDIT']).default('COMPREHENSIVE_AUDIT'),
+  academic_year_id: z.string().uuid('Invalid academic year UUID').optional(),
+});
+export type AuditExportQueryInput = z.infer<typeof AuditExportQuerySchema>;
+
