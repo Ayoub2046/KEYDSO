@@ -41,6 +41,8 @@ export class InMemoryDatabase implements IDatabaseClient {
   public committeeTasks: any[] = [];
   public meetings: any[] = [];
   public meetingAttendance: any[] = [];
+  public notifications: any[] = [];
+  public pushSubscriptions: any[] = [];
 
   constructor() {
     this.seedDefaultData();
@@ -696,6 +698,56 @@ export class InMemoryDatabase implements IDatabaseClient {
         updated_at: new Date().toISOString(),
       },
     ];
+
+    // Seed Notifications
+    this.notifications = [
+      {
+        id: 'b0000000-0000-0000-0000-000000000001',
+        user_id: demoStudentUser.id,
+        title: 'Payment Verified & Receipt Issued',
+        message: 'Your payment of $25.00 for Semester 2 Contribution has been verified. Receipt #REC-2026-0001 is ready to download.',
+        type: 'PAYMENT_VERIFIED',
+        action_url: '/portal/contributions',
+        is_read: false,
+        read_at: null,
+        created_at: new Date(Date.now() - 3600000 * 2).toISOString(),
+      },
+      {
+        id: 'b0000000-0000-0000-0000-000000000002',
+        user_id: demoStudentUser.id,
+        title: 'New Council Announcement',
+        message: 'Welcome to Keydso Maanta. The Student Representative Council has published the Semester 2 Transparency Agenda.',
+        type: 'ANNOUNCEMENT',
+        action_url: '/portal',
+        is_read: true,
+        read_at: new Date(Date.now() - 3600000 * 5).toISOString(),
+        created_at: new Date(Date.now() - 3600000 * 6).toISOString(),
+      },
+      {
+        id: 'b0000000-0000-0000-0000-000000000003',
+        user_id: csitRepUser.id,
+        title: 'Meeting Proposal Approved',
+        message: 'Your meeting proposal "CSIT Faculty Student Representative Forum" scheduled for 2026-03-20 was approved by General President.',
+        type: 'MEETING_APPROVED',
+        action_url: '/governance/meetings',
+        is_read: false,
+        read_at: null,
+        created_at: new Date(Date.now() - 3600000 * 3).toISOString(),
+      },
+      {
+        id: 'b0000000-0000-0000-0000-000000000004',
+        user_id: genPresUser.id,
+        title: 'Expense Reconciled & Published',
+        message: 'IT Lab Network Switches & High-Speed Patch Cables ($320.00) has been reconciled with verified invoice evidence.',
+        type: 'EXPENSE_APPROVED',
+        action_url: '/finance/expenses',
+        is_read: false,
+        read_at: null,
+        created_at: new Date(Date.now() - 3600000 * 4).toISOString(),
+      },
+    ];
+
+    this.pushSubscriptions = [];
   }
 
   public async query<R extends QueryResultRow = any>(text: string, params: any[] = []): Promise<QueryResult<R>> {

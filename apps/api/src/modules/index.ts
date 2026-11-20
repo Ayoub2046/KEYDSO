@@ -7,6 +7,7 @@ import { portalRouter } from './portal/portal.routes';
 import { financeRouter } from './finance/finance.routes';
 import { governanceRouter } from './governance/governance.routes';
 import { reportsRouter } from './reports/reports.routes';
+import { notificationsRouter } from './notifications/notifications.routes';
 
 export const apiV1Router = Router();
 
@@ -18,3 +19,4 @@ apiV1Router.use('/portal', portalRouter);
 apiV1Router.use('/finance', financeRouter);
 apiV1Router.use('/governance', governanceRouter);
 apiV1Router.use('/reports', reportsRouter);
+apiV1Router.use('/notifications', notificationsRouter);

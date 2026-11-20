@@ -2,6 +2,7 @@ import React from 'react';
 import { useAuthStore } from '../store/authStore';
 import { LogOut, User, ShieldCheck } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { NotificationCenter } from './NotificationCenter';
 
 export const Navbar: React.FC = () => {
   const { user, logout } = useAuthStore();
@@ -27,6 +28,8 @@ export const Navbar: React.FC = () => {
       <div className="flex items-center gap-4">
         {user && (
           <div className="flex items-center gap-3">
+            <NotificationCenter />
+
             <div className="text-right hidden sm:block">
               <div className="text-sm font-medium text-slate-100 flex items-center gap-1.5 justify-end">
                 <span>{user.full_name}</span>

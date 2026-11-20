@@ -30,6 +30,8 @@ import {
   FacultyPerformanceReport,
   CommitteeGovernanceAnalytics,
   AuditExportReport,
+  InAppNotification,
+  NotificationCenterOverview,
 } from '@keydso/shared-types';
 
 const API_BASE = '/api/v1';
@@ -280,4 +282,19 @@ export const api = {
     URL.revokeObjectURL(url);
     document.body.removeChild(a);
   },
+
+  // Notification Center
+  getNotifications: () => request<NotificationCenterOverview>('/notifications'),
+  markNotificationRead: (id: string) => request<InAppNotification>(`/notifications/${id}/read`, { method: 'PATCH' }),
+  markAllNotificationsRead: () => request<{ marked_count: number }>('/notifications/mark-all-read', { method: 'POST' }),
+  registerPushSubscription: (data: any) =>
+    request<{ success: boolean; subscription_id: string }>('/notifications/push-subscription', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+  unregisterPushSubscription: (endpoint: string) =>
+    request<{ success: boolean }>('/notifications/push-subscription', {
+      method: 'DELETE',
+      body: JSON.stringify({ endpoint }),
+    }),
 };

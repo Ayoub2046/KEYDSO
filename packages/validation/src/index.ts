@@ -347,3 +347,31 @@ export const AuditExportQuerySchema = z.object({
 });
 export type AuditExportQueryInput = z.infer<typeof AuditExportQuerySchema>;
 
+// --- Notification Schemas ---
+export const PushSubscriptionSchema = z.object({
+  endpoint: z.string().url('Invalid push endpoint URL'),
+  keys: z.object({
+    p256dh: z.string().min(10, 'Invalid p256dh public key'),
+    auth: z.string().min(5, 'Invalid auth secret'),
+  }),
+});
+export type PushSubscriptionInput = z.infer<typeof PushSubscriptionSchema>;
+
+export const CreateNotificationSchema = z.object({
+  user_id: z.string().uuid('Invalid user UUID'),
+  title: z.string().trim().min(3).max(150),
+  message: z.string().trim().min(5),
+  type: z.enum([
+    'PAYMENT_VERIFIED',
+    'MEETING_APPROVED',
+    'ANNOUNCEMENT',
+    'TASK_ASSIGNED',
+    'EXPENSE_APPROVED',
+    'CHALLENGE_UPDATED',
+    'SYSTEM',
+  ]).default('SYSTEM'),
+  action_url: z.string().trim().optional().nullable(),
+});
+export type CreateNotificationInput = z.infer<typeof CreateNotificationSchema>;
+
+

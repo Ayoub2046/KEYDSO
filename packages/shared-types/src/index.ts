@@ -670,6 +670,43 @@ export interface AuditExportReport {
   records_count: number;
 }
 
+// --- Notifications Domain Types ---
+export type NotificationType =
+  | 'PAYMENT_VERIFIED'
+  | 'MEETING_APPROVED'
+  | 'ANNOUNCEMENT'
+  | 'TASK_ASSIGNED'
+  | 'EXPENSE_APPROVED'
+  | 'CHALLENGE_UPDATED'
+  | 'SYSTEM';
+
+export interface InAppNotification {
+  id: string;
+  user_id: string;
+  title: string;
+  message: string;
+  type: NotificationType;
+  action_url?: string | null;
+  is_read: boolean;
+  read_at?: string | null;
+  created_at: string;
+}
+
+export interface NotificationCenterOverview {
+  unread_count: number;
+  total_count: number;
+  notifications: InAppNotification[];
+}
+
+export interface WebPushSubscription {
+  id: string;
+  user_id: string;
+  endpoint: string;
+  p256dh: string;
+  auth: string;
+  created_at: string;
+}
+
 // --- API Standard Wrappers ---
 export interface ApiResponse<T = unknown> {
   success: boolean;
