@@ -17,6 +17,9 @@ import {
   ShoppingBag,
   BookOpen,
   HeartHandshake,
+  Briefcase,
+  Calendar,
+  AlertTriangle,
 } from 'lucide-react';
 
 export const Sidebar: React.FC = () => {
@@ -24,10 +27,15 @@ export const Sidebar: React.FC = () => {
   const roles = user?.roles || [];
   const isAdmin = roles.includes(RoleName.SYSTEM_ADMIN);
   const isFinance = roles.includes(RoleName.FINANCE_OFFICER) || isAdmin;
+  const isFacultyPres = roles.includes(RoleName.FACULTY_PRESIDENT);
   const isExecutive =
     roles.includes(RoleName.GENERAL_PRESIDENT) ||
     roles.includes(RoleName.VICE_PRESIDENT) ||
     isAdmin;
+  const isSecretary = roles.includes(RoleName.SECRETARY);
+  const isCommitteeMember =
+    roles.includes(RoleName.COMMITTEE_CHAIR) || roles.includes(RoleName.COMMITTEE_MEMBER);
+  const isCouncil = isExecutive || isFacultyPres || isSecretary || isCommitteeMember;
   const hasFinanceAccess = isFinance || isExecutive;
 
   const navLinkClass = ({ isActive }: { isActive: boolean }) =>
@@ -122,6 +130,44 @@ export const Sidebar: React.FC = () => {
           </div>
         )}
 
+        {isCouncil && (
+          <div>
+            <div className="px-3 mb-2 text-xs font-semibold tracking-wider text-slate-400 uppercase">
+              Council Governance
+            </div>
+            <nav className="space-y-1">
+              {isExecutive && (
+                <NavLink to="/governance/dashboard" className={navLinkClass}>
+                  <LayoutDashboard className="w-4 h-4 text-sky-400" />
+                  <span>Executive Hub</span>
+                </NavLink>
+              )}
+
+              {isFacultyPres && (
+                <NavLink to="/governance/faculty" className={navLinkClass}>
+                  <Building2 className="w-4 h-4 text-indigo-400" />
+                  <span>Faculty Workspace</span>
+                </NavLink>
+              )}
+
+              <NavLink to="/governance/committees" className={navLinkClass}>
+                <Briefcase className="w-4 h-4 text-purple-400" />
+                <span>Committees & Tasks</span>
+              </NavLink>
+
+              <NavLink to="/governance/meetings" className={navLinkClass}>
+                <Calendar className="w-4 h-4 text-emerald-400" />
+                <span>Meetings & Assemblies</span>
+              </NavLink>
+
+              <NavLink to="/governance/challenges" className={navLinkClass}>
+                <AlertTriangle className="w-4 h-4 text-amber-400" />
+                <span>Faculty Challenges</span>
+              </NavLink>
+            </nav>
+          </div>
+        )}
+
         {isAdmin && (
           <div>
             <div className="px-3 mb-2 text-xs font-semibold tracking-wider text-slate-400 uppercase">
@@ -154,7 +200,7 @@ export const Sidebar: React.FC = () => {
 
       <div className="p-4 border-t border-slate-800 text-xs text-slate-400">
         <p className="font-semibold text-slate-300">Keydso Maanta PWA</p>
-        <p className="mt-0.5">Phase 3: Financial Core Ready</p>
+        <p className="mt-0.5">Phase 4: Governance Ready</p>
       </div>
     </aside>
   );

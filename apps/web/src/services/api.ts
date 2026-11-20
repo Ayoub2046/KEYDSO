@@ -20,6 +20,12 @@ import {
   Expense,
   LedgerEntry,
   WelfareCase,
+  Committee,
+  CommitteeMembership,
+  CommitteeTask,
+  MeetingAndTraining,
+  IssueReport,
+  CouncilDashboardOverview,
 } from '@keydso/shared-types';
 
 const API_BASE = '/api/v1';
@@ -154,4 +160,90 @@ export const api = {
   getWelfareCases: () => request<WelfareCase[]>('/finance/welfare'),
   createWelfareCase: (data: { student_id: string; confidential_reason: string; requested_amount: number }) =>
     request<WelfareCase>('/finance/welfare', { method: 'POST', body: JSON.stringify(data) }),
+
+  // Governance: Committees
+  getCommittees: (academicYearId?: string, facultyId?: string) => {
+    const query = new URLSearchParams();
+    if (academicYearId) query.append('academic_year_id', academicYearId);
+    if (facultyId) query.append('faculty_id', facultyId);
+    const qs = query.toString();
+    return request<Committee[]>(qs ? `/governance/committees?${qs}` : '/governance/committees');
+  },
+  getCommitteeById: (id: string) => request<Committee>(`/governance/committees/${id}`),
+  createCommittee: (data: any) =>
+    request<Committee>('/governance/committees', { method: 'POST', body: JSON.stringify(data) }),
+  assignCommitteeMember: (committeeId: string, data: { user_id: string; role_in_committee?: string }) =>
+    request<CommitteeMembership>(`/governance/committees/${committeeId}/members`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+  removeCommitteeMember: (committeeId: string, userId: string) =>
+    request<{ removed: boolean }>(`/governance/committees/${committeeId}/members/${userId}`, {
+      method: 'DELETE',
+    }),
+
+  // Governance: Tasks
+  getCommitteeTasks: (params?: { committee_id?: string; assigned_to?: string }) => {
+    const query = new URLSearchParams();
+    if (params?.committee_id) query.append('committee_id', params.committee_id);
+    if (params?.assigned_to) query.append('assigned_to', params.assigned_to);
+    const qs = query.toString();
+    return request<CommitteeTask[]>(qs ? `/governance/tasks?${qs}` : '/governance/tasks');
+  },
+  createCommitteeTask: (data: any) =>
+    request<CommitteeTask>('/governance/tasks', { method: 'POST', body: JSON.stringify(data) }),
+  updateCommitteeTaskStatus: (taskId: string, status: string) =>
+    request<CommitteeTask>(`/governance/tasks/${taskId}/status`, {
+      method: 'PATCH',
+      body: JSON.stringify({ status }),
+    }),
+
+  // Governance: Meetings & Training
+  getMeetings: (params?: { academic_year_id?: string; faculty_id?: string; committee_id?: string; status?: string }) => {
+    const query = new URLSearchParams();
+    if (params?.academic_year_id) query.append('academic_year_id', params.academic_year_id);
+    if (params?.faculty_id) query.append('faculty_id', params.faculty_id);
+    if (params?.committee_id) query.append('committee_id', params.committee_id);
+    if (params?.status) query.append('status', params.status);
+    const qs = query.toString();
+    return request<MeetingAndTraining[]>(qs ? `/governance/meetings?${qs}` : '/governance/meetings');
+  },
+  createMeeting: (data: any) =>
+    request<MeetingAndTraining>('/governance/meetings', { method: 'POST', body: JSON.stringify(data) }),
+  reviewMeeting: (id: string, data: { status: 'APPROVED' | 'REJECTED'; rejection_reason?: string }) =>
+    request<MeetingAndTraining>(`/governance/meetings/${id}/review`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+  recordMeetingMinutes: (id: string, data: { minutes: string; official_resolutions?: string; attendance_count: number }) =>
+    request<MeetingAndTraining>(`/governance/meetings/${id}/minutes`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  // Governance: Challenges & Issues
+  getIssues: (params?: { faculty_id?: string; status?: string; category?: string; priority?: string }) => {
+    const query = new URLSearchParams();
+    if (params?.faculty_id) query.append('faculty_id', params.faculty_id);
+    if (params?.status) query.append('status', params.status);
+    if (params?.category) query.append('category', params.category);
+    if (params?.priority) query.append('priority', params.priority);
+    const qs = query.toString();
+    return request<IssueReport[]>(qs ? `/governance/issues?${qs}` : '/governance/issues');
+  },
+  createIssue: (data: any) =>
+    request<IssueReport>('/governance/issues', { method: 'POST', body: JSON.stringify(data) }),
+  updateIssueStatus: (id: string, data: { status: string; assigned_to?: string }) =>
+    request<IssueReport>(`/governance/issues/${id}/status`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    }),
+  resolveIssue: (id: string, data: { resolution_notes: string }) =>
+    request<IssueReport>(`/governance/issues/${id}/resolve`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  // Governance: Dashboard Overview
+  getCouncilDashboard: () => request<CouncilDashboardOverview>('/governance/dashboard'),
 };

@@ -248,3 +248,85 @@ export const CreateWaiverSchema = z.object({
   reason: z.string().trim().min(5, 'Approved reason is required for waiver audit'),
 });
 export type CreateWaiverInput = z.infer<typeof CreateWaiverSchema>;
+
+// --- Governance: Committees ---
+export const CreateCommitteeSchema = z.object({
+  name: z.string().trim().min(3, 'Committee name must be at least 3 characters').max(100),
+  code: z.string().trim().min(2, 'Code must be at least 2 characters').max(30).toUpperCase(),
+  mandate: z.string().trim().min(10, 'Mandate must be at least 10 characters'),
+  academic_year_id: z.string().uuid('Invalid academic year UUID'),
+  chairperson_id: z.string().uuid('Invalid chairperson UUID').optional().nullable(),
+  faculty_id: z.string().uuid('Invalid faculty UUID').optional().nullable(),
+});
+export type CreateCommitteeInput = z.infer<typeof CreateCommitteeSchema>;
+
+export const AssignCommitteeMemberSchema = z.object({
+  user_id: z.string().uuid('Invalid user UUID'),
+  role_in_committee: z.string().trim().min(2).default('MEMBER'),
+});
+export type AssignCommitteeMemberInput = z.infer<typeof AssignCommitteeMemberSchema>;
+
+export const CreateCommitteeTaskSchema = z.object({
+  committee_id: z.string().uuid('Invalid committee UUID'),
+  title: z.string().trim().min(3, 'Task title required').max(150),
+  description: z.string().trim().optional(),
+  assigned_to: z.string().uuid('Invalid user UUID').optional().nullable(),
+  due_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Due date must be YYYY-MM-DD').optional().nullable(),
+});
+export type CreateCommitteeTaskInput = z.infer<typeof CreateCommitteeTaskSchema>;
+
+export const UpdateCommitteeTaskStatusSchema = z.object({
+  status: z.enum(['TODO', 'IN_PROGRESS', 'UNDER_REVIEW', 'COMPLETED']),
+});
+export type UpdateCommitteeTaskStatusInput = z.infer<typeof UpdateCommitteeTaskStatusSchema>;
+
+// --- Governance: Meetings & Training ---
+export const CreateMeetingRequestSchema = z.object({
+  title: z.string().trim().min(3, 'Meeting title must be at least 3 characters').max(150),
+  type: z.enum(['COUNCIL_MEETING', 'FACULTY_MEETING', 'COMMITTEE_MEETING', 'TRAINING_SESSION', 'GENERAL_ASSEMBLY']),
+  faculty_id: z.string().uuid('Invalid faculty UUID').optional().nullable(),
+  committee_id: z.string().uuid('Invalid committee UUID').optional().nullable(),
+  academic_year_id: z.string().uuid('Invalid academic year UUID'),
+  scheduled_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Date must be YYYY-MM-DD'),
+  start_time: z.string().regex(/^\d{2}:\d{2}$/, 'Start time must be HH:MM'),
+  end_time: z.string().regex(/^\d{2}:\d{2}$/, 'End time must be HH:MM'),
+  venue: z.string().trim().min(2, 'Venue location required').max(150),
+  agenda: z.string().trim().min(10, 'Agenda must be at least 10 characters'),
+  target_audience: z.string().trim().min(2).default('ALL'),
+});
+export type CreateMeetingRequestInput = z.infer<typeof CreateMeetingRequestSchema>;
+
+export const ReviewMeetingRequestSchema = z.object({
+  status: z.enum(['APPROVED', 'REJECTED']),
+  rejection_reason: z.string().trim().optional(),
+});
+export type ReviewMeetingRequestInput = z.infer<typeof ReviewMeetingRequestSchema>;
+
+export const RecordMeetingMinutesSchema = z.object({
+  minutes: z.string().trim().min(15, 'Minutes content must be at least 15 characters'),
+  official_resolutions: z.string().trim().optional(),
+  attendance_count: z.number().int().nonnegative().default(0),
+});
+export type RecordMeetingMinutesInput = z.infer<typeof RecordMeetingMinutesSchema>;
+
+// --- Governance: Faculty Challenges & Issues ---
+export const CreateIssueReportSchema = z.object({
+  faculty_id: z.string().uuid('Invalid faculty UUID'),
+  department_id: z.string().uuid('Invalid department UUID').optional().nullable(),
+  category: z.enum(['ACADEMIC', 'INFRASTRUCTURE', 'WELFARE', 'ADMINISTRATIVE', 'FINANCIAL', 'OTHER']),
+  priority: z.enum(['LOW', 'MEDIUM', 'HIGH', 'CRITICAL']),
+  title: z.string().trim().min(3, 'Issue title must be at least 3 characters').max(150),
+  description: z.string().trim().min(10, 'Description must be at least 10 characters'),
+});
+export type CreateIssueReportInput = z.infer<typeof CreateIssueReportSchema>;
+
+export const UpdateIssueStatusSchema = z.object({
+  status: z.enum(['SUBMITTED', 'UNDER_REVIEW', 'ASSIGNED', 'IN_PROGRESS', 'RESOLVED', 'REJECTED']),
+  assigned_to: z.string().uuid('Invalid user UUID').optional().nullable(),
+});
+export type UpdateIssueStatusInput = z.infer<typeof UpdateIssueStatusSchema>;
+
+export const ResolveIssueSchema = z.object({
+  resolution_notes: z.string().trim().min(5, 'Resolution notes are required for resolution audit'),
+});
+export type ResolveIssueInput = z.infer<typeof ResolveIssueSchema>;

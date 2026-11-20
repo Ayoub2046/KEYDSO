@@ -18,6 +18,11 @@ import { PaymentVerificationQueue } from './features/finance/PaymentVerification
 import { ExpenseWorkflow } from './features/finance/ExpenseWorkflow';
 import { LedgerViewer } from './features/finance/LedgerViewer';
 import { WelfareManager } from './features/finance/WelfareManager';
+import { CouncilDashboard } from './features/governance/CouncilDashboard';
+import { FacultyWorkspace } from './features/governance/FacultyWorkspace';
+import { CommitteesManager } from './features/governance/CommitteesManager';
+import { MeetingsManager } from './features/governance/MeetingsManager';
+import { FacultyChallengesPage } from './features/governance/FacultyChallengesPage';
 import { RoleName } from '@keydso/shared-types';
 
 export const App: React.FC = () => {
@@ -68,6 +73,31 @@ export const App: React.FC = () => {
             <Route path="/finance/record-payment" element={<PaymentRecorder />} />
             <Route path="/finance/verification-queue" element={<PaymentVerificationQueue />} />
           </Route>
+
+          {/* Council Governance Routes */}
+          <Route
+            element={
+              <ProtectedRoute
+                allowedRoles={[
+                  RoleName.GENERAL_PRESIDENT,
+                  RoleName.VICE_PRESIDENT,
+                  RoleName.FACULTY_PRESIDENT,
+                  RoleName.SECRETARY,
+                  RoleName.COMMITTEE_CHAIR,
+                  RoleName.COMMITTEE_MEMBER,
+                  RoleName.SYSTEM_ADMIN,
+                ]}
+              />
+            }
+          >
+            <Route path="/governance/dashboard" element={<CouncilDashboard />} />
+            <Route path="/governance/faculty" element={<FacultyWorkspace />} />
+            <Route path="/governance/committees" element={<CommitteesManager />} />
+            <Route path="/governance/meetings" element={<MeetingsManager />} />
+          </Route>
+
+          {/* Challenges / Issues (Open to All Authenticated Users) */}
+          <Route path="/governance/challenges" element={<FacultyChallengesPage />} />
 
           {/* Admin Restricted Routes */}
           <Route element={<ProtectedRoute allowedRoles={[RoleName.SYSTEM_ADMIN]} />}>

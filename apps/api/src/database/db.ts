@@ -36,6 +36,11 @@ export class InMemoryDatabase implements IDatabaseClient {
   public supportCases: any[] = [];
   public issueReports: any[] = [];
   public announcements: any[] = [];
+  public committees: any[] = [];
+  public committeeMemberships: any[] = [];
+  public committeeTasks: any[] = [];
+  public meetings: any[] = [];
+  public meetingAttendance: any[] = [];
 
   constructor() {
     this.seedDefaultData();
@@ -147,11 +152,25 @@ export class InMemoryDatabase implements IDatabaseClient {
       updated_at: new Date().toISOString(),
     };
 
-    this.profiles = [adminUser, genPresUser, csitRepUser, engRepUser, demoStudentUser, financeOfficerA, financeOfficerB];
+    // Council Secretary Profile
+    const secretaryUser = {
+      id: '00000000-0000-0000-0000-000000000003',
+      email: 'secretary@keydso.university.edu',
+      password_hash: adminPasswordHash,
+      full_name: 'Zahra Ahmed Nur',
+      contact_number: '+252 61 7000003',
+      bio: 'Council Secretary & Head of Secretariat. Responsible for council correspondence, meeting minutes, and official records.',
+      is_active: true,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+
+    this.profiles = [adminUser, genPresUser, csitRepUser, engRepUser, demoStudentUser, financeOfficerA, financeOfficerB, secretaryUser];
 
     this.userRoleAssignments = [
       { id: '01000000-0000-0000-0000-000000000001', user_id: adminUser.id, role_id: '10000000-0000-0000-0000-000000000001', assigned_at: new Date().toISOString() },
       { id: '01000000-0000-0000-0000-000000000002', user_id: genPresUser.id, role_id: '10000000-0000-0000-0000-000000000002', assigned_at: new Date().toISOString() },
+      { id: '01000000-0000-0000-0000-000000000003', user_id: secretaryUser.id, role_id: '10000000-0000-0000-0000-000000000006', assigned_at: new Date().toISOString() },
       { id: '01000000-0000-0000-0000-000000000004', user_id: engRepUser.id, role_id: '10000000-0000-0000-0000-000000000004', assigned_at: new Date().toISOString() },
       { id: '01000000-0000-0000-0000-000000000005', user_id: csitRepUser.id, role_id: '10000000-0000-0000-0000-000000000004', assigned_at: new Date().toISOString() },
       { id: '01000000-0000-0000-0000-000000000099', user_id: demoStudentUser.id, role_id: '10000000-0000-0000-0000-000000000009', assigned_at: new Date().toISOString() },
@@ -433,6 +452,192 @@ export class InMemoryDatabase implements IDatabaseClient {
         target_audience: 'ALL',
         author_name: 'Finance Committee',
         published_at: new Date().toISOString(),
+      },
+    ];
+
+    // Seed Governance: Committees
+    const welfareComm = {
+      id: 'a0000000-0000-0000-0000-000000000001',
+      name: 'Student Welfare & Social Support Committee',
+      code: 'WELFARE',
+      mandate: 'Identify and address student hardship, food security, emergency medical aid and accommodation needs.',
+      chairperson_id: engRepUser.id,
+      faculty_id: null,
+      academic_year_id: ay.id,
+      is_active: true,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+
+    const techComm = {
+      id: 'a0000000-0000-0000-0000-000000000002',
+      name: 'Computing & Digital Campus Committee',
+      code: 'CSIT-TECH',
+      mandate: 'Oversee student lab infrastructure, campus WiFi uptime, programming hackathons and digital advocacy.',
+      chairperson_id: csitRepUser.id,
+      faculty_id: facCsit.id,
+      academic_year_id: ay.id,
+      is_active: true,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+
+    this.committees = [welfareComm, techComm];
+
+    // Seed Committee Memberships
+    this.committeeMemberships = [
+      {
+        id: 'a1000000-0000-0000-0000-000000000001',
+        committee_id: welfareComm.id,
+        user_id: engRepUser.id,
+        role_in_committee: 'CHAIRPERSON',
+        joined_at: new Date().toISOString(),
+      },
+      {
+        id: 'a1000000-0000-0000-0000-000000000002',
+        committee_id: welfareComm.id,
+        user_id: financeOfficerA.id,
+        role_in_committee: 'MEMBER',
+        joined_at: new Date().toISOString(),
+      },
+      {
+        id: 'a1000000-0000-0000-0000-000000000003',
+        committee_id: techComm.id,
+        user_id: csitRepUser.id,
+        role_in_committee: 'CHAIRPERSON',
+        joined_at: new Date().toISOString(),
+      },
+      {
+        id: 'a1000000-0000-0000-0000-000000000004',
+        committee_id: techComm.id,
+        user_id: demoStudentUser.id,
+        role_in_committee: 'STUDENT_REPRESENTATIVE',
+        joined_at: new Date().toISOString(),
+      },
+    ];
+
+    // Seed Committee Tasks
+    this.committeeTasks = [
+      {
+        id: 'a2000000-0000-0000-0000-000000000001',
+        committee_id: techComm.id,
+        title: 'Inspect Computing Lab B network switch installation',
+        description: 'Verify 24-port switch procurement delivered under PO-2026-042 and test connection speeds.',
+        assigned_to: csitRepUser.id,
+        due_date: '2026-02-28',
+        status: 'COMPLETED',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      },
+      {
+        id: 'a2000000-0000-0000-0000-000000000002',
+        committee_id: techComm.id,
+        title: 'Draft Campus WiFi Expansion Proposal',
+        description: 'Collect student survey responses on library reading hall blind spots.',
+        assigned_to: csitRepUser.id,
+        due_date: '2026-03-30',
+        status: 'IN_PROGRESS',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      },
+      {
+        id: 'a2000000-0000-0000-0000-000000000003',
+        committee_id: welfareComm.id,
+        title: 'Compile Semester 2 Hardship Aid List',
+        description: 'Review confidential welfare applications submitted by faculty presidents.',
+        assigned_to: engRepUser.id,
+        due_date: '2026-03-15',
+        status: 'TODO',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      },
+    ];
+
+    // Seed Faculty Challenges & Issue Reports
+    this.issueReports = [
+      {
+        id: 'a3000000-0000-0000-0000-000000000001',
+        reference_number: 'ISS-2026-0001',
+        faculty_id: facCsit.id,
+        department_id: deptCs.id,
+        reported_by: demoStudentUser.id,
+        category: 'INFRASTRUCTURE',
+        priority: 'HIGH',
+        title: 'Computing Lab B Projector Lamp Flickering',
+        description: 'The ceiling projector in Lab B constantly shuts down during Data Structures lectures, impeding 120 students.',
+        assigned_to: csitRepUser.id,
+        status: 'IN_PROGRESS',
+        resolution_notes: null,
+        resolved_at: null,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      },
+      {
+        id: 'a3000000-0000-0000-0000-000000000002',
+        reference_number: 'ISS-2026-0002',
+        faculty_id: facEng.id,
+        department_id: deptCivil.id,
+        reported_by: engRepUser.id,
+        category: 'ACADEMIC',
+        priority: 'MEDIUM',
+        title: 'Surveying Total Station Calibration Needed',
+        description: 'Civil engineering field equipment requires professional calibration before the upcoming midterm field examinations.',
+        assigned_to: engRepUser.id,
+        status: 'SUBMITTED',
+        resolution_notes: null,
+        resolved_at: null,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      },
+    ];
+
+    // Seed Meetings & Trainings
+    this.meetings = [
+      {
+        id: 'a4000000-0000-0000-0000-000000000001',
+        title: 'Semester 2 Executive Council Opening Assembly',
+        type: 'COUNCIL_MEETING',
+        faculty_id: null,
+        committee_id: null,
+        academic_year_id: ay.id,
+        requested_by: genPresUser.id,
+        scheduled_date: '2026-02-02',
+        start_time: '10:00',
+        end_time: '12:30',
+        venue: 'Council Chamber, Room 10',
+        agenda: 'Review Semester 2 contribution drive, committee appointments, and presidential priorities.',
+        target_audience: 'COUNCIL',
+        status: 'COMPLETED',
+        approved_by: genPresUser.id,
+        rejection_reason: null,
+        minutes: 'Session called to order by General President Mohamud Jama. Unanimously ratified the $25 contribution fee. Directed Finance Committee to establish four-eyes controls.',
+        official_resolutions: '1. Contribution rate confirmed at $25. 2. Mandatory dual-approval established for expenditures above $500.',
+        attendance_count: 8,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      },
+      {
+        id: 'a4000000-0000-0000-0000-000000000002',
+        title: 'CSIT Faculty Student Representative Forum',
+        type: 'FACULTY_MEETING',
+        faculty_id: facCsit.id,
+        committee_id: techComm.id,
+        academic_year_id: ay.id,
+        requested_by: csitRepUser.id,
+        scheduled_date: '2026-03-20',
+        start_time: '14:00',
+        end_time: '16:00',
+        venue: 'Computing Complex Hall B',
+        agenda: 'Open consultation on software licensing, internship matchmaking, and lab equipment.',
+        target_audience: 'FACULTY',
+        status: 'APPROVED',
+        approved_by: genPresUser.id,
+        rejection_reason: null,
+        minutes: null,
+        official_resolutions: null,
+        attendance_count: 0,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
       },
     ];
   }

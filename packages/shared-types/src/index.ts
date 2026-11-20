@@ -333,6 +333,122 @@ export interface WelfareCase {
   updated_at: string;
 }
 
+// --- Council & Committee Governance ---
+export interface Committee {
+  id: string;
+  name: string;
+  code: string;
+  mandate: string;
+  chairperson_id?: string | null;
+  chairperson_name?: string;
+  faculty_id?: string | null;
+  faculty_name?: string;
+  academic_year_id: string;
+  is_active: boolean;
+  member_count?: number;
+  task_count?: number;
+  members?: CommitteeMembership[];
+  tasks?: CommitteeTask[];
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CommitteeMembership {
+  id: string;
+  committee_id: string;
+  user_id: string;
+  user_name?: string;
+  user_email?: string;
+  role_in_committee: string;
+  joined_at: string;
+}
+
+export interface CommitteeTask {
+  id: string;
+  committee_id: string;
+  committee_name?: string;
+  title: string;
+  description?: string | null;
+  assigned_to?: string | null;
+  assigned_to_name?: string;
+  due_date?: string | null;
+  status: 'TODO' | 'IN_PROGRESS' | 'UNDER_REVIEW' | 'COMPLETED';
+  created_at: string;
+  updated_at: string;
+}
+
+export interface IssueReport {
+  id: string;
+  reference_number: string;
+  faculty_id: string;
+  faculty_name?: string;
+  department_id?: string | null;
+  department_name?: string;
+  reported_by: string;
+  reporter_name?: string;
+  category: 'ACADEMIC' | 'INFRASTRUCTURE' | 'WELFARE' | 'ADMINISTRATIVE' | 'FINANCIAL' | 'OTHER';
+  priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+  title: string;
+  description: string;
+  assigned_to?: string | null;
+  assigned_to_name?: string;
+  status: 'SUBMITTED' | 'UNDER_REVIEW' | 'ASSIGNED' | 'IN_PROGRESS' | 'RESOLVED' | 'REJECTED';
+  resolution_notes?: string | null;
+  resolved_at?: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export type MeetingType =
+  | 'COUNCIL_MEETING'
+  | 'FACULTY_MEETING'
+  | 'COMMITTEE_MEETING'
+  | 'TRAINING_SESSION'
+  | 'GENERAL_ASSEMBLY';
+
+export type MeetingStatus = 'REQUESTED' | 'APPROVED' | 'REJECTED' | 'COMPLETED' | 'CANCELLED';
+
+export interface MeetingAndTraining {
+  id: string;
+  title: string;
+  type: MeetingType;
+  faculty_id?: string | null;
+  faculty_name?: string;
+  committee_id?: string | null;
+  committee_name?: string;
+  academic_year_id: string;
+  requested_by: string;
+  requester_name?: string;
+  scheduled_date: string;
+  start_time: string;
+  end_time: string;
+  venue: string;
+  agenda: string;
+  target_audience: string;
+  status: MeetingStatus;
+  approved_by?: string | null;
+  approver_name?: string;
+  rejection_reason?: string | null;
+  minutes?: string | null;
+  official_resolutions?: string | null;
+  attendance_count: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CouncilDashboardOverview {
+  total_students: number;
+  total_faculties: number;
+  active_campaigns_count: number;
+  total_funds_balance: number;
+  active_committees_count: number;
+  open_challenges_count: number;
+  pending_meetings_count: number;
+  pending_expenses_count: number;
+  recent_challenges: IssueReport[];
+  upcoming_meetings: MeetingAndTraining[];
+}
+
 // --- Student Portal Domain Types ---
 export interface RepresentativeInfo {
   id: string;
