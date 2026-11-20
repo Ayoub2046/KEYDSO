@@ -23,6 +23,7 @@ export interface UserProfile {
   contact_number?: string | null;
   bio?: string | null;
   is_active: boolean;
+  student_id?: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -60,7 +61,7 @@ export interface AuthSession {
 // --- Academic Hierarchy ---
 export interface AcademicYear {
   id: string;
-  code: string; // e.g. "AY-2025-2026"
+  code: string;
   name: string;
   start_date: string;
   end_date: string;
@@ -201,6 +202,100 @@ export type ExpenseStatus =
   | 'DISBURSED'
   | 'RECONCILED'
   | 'REJECTED';
+
+// --- Student Portal Domain Types ---
+export interface RepresentativeInfo {
+  id: string;
+  full_name: string;
+  role_title: string;
+  faculty_name?: string;
+  department_name?: string;
+  contact_number?: string | null;
+  email?: string | null;
+  avatar_url?: string | null;
+  bio?: string | null;
+  whatsapp_number?: string | null;
+  office_hours?: string | null;
+}
+
+export interface StudentPaymentRecord {
+  id: string;
+  transaction_reference: string;
+  amount: number;
+  payment_method: PaymentMethod;
+  payment_date: string;
+  status: PaymentStatus;
+  receipt_number?: string | null;
+  campaign_title: string;
+  verification_date?: string | null;
+}
+
+export interface StudentReceipt {
+  id: string;
+  payment_id: string;
+  receipt_number: string;
+  student_name: string;
+  student_id_number: string;
+  amount: number;
+  campaign_title: string;
+  payment_method: string;
+  issued_at: string;
+  issued_by_name: string;
+  signature_hash: string;
+}
+
+export interface StudentCampaignSummary {
+  campaign_id: string;
+  campaign_title: string;
+  campaign_purpose: string;
+  campaign_type: CampaignType;
+  expected_amount: number;
+  verified_paid_amount: number;
+  waived_amount: number;
+  sponsored_amount: number;
+  remaining_balance: number;
+  status: ObligationStatus;
+  due_date: string;
+  payments: StudentPaymentRecord[];
+}
+
+export interface StudentPortalOverview {
+  student: Student;
+  total_expected: number;
+  total_paid: number;
+  total_remaining: number;
+  overall_status: ObligationStatus;
+  campaigns: StudentCampaignSummary[];
+  recent_receipts: StudentReceipt[];
+  representatives: RepresentativeInfo[];
+  announcements: Announcement[];
+}
+
+export interface PublicExpenseSummary {
+  id: string;
+  campaign_title: string;
+  expense_title: string;
+  purpose: string;
+  vendor_name: string;
+  amount: number;
+  disbursed_at: string;
+  approver_name: string;
+  evidence_files: {
+    file_name: string;
+    file_path: string;
+    mime_type: string;
+  }[];
+}
+
+export interface Announcement {
+  id: string;
+  title: string;
+  content: string;
+  category: 'GENERAL' | 'FINANCE' | 'MEETING' | 'TRAINING' | 'WELFARE';
+  target_audience: 'ALL' | 'FACULTY' | 'COUNCIL';
+  author_name: string;
+  published_at: string;
+}
 
 // --- Audit & Security ---
 export interface AuditLogEntry {

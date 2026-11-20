@@ -32,8 +32,10 @@ export class InMemoryDatabase implements IDatabaseClient {
   public ledgerEntries: any[] = [];
   public receipts: any[] = [];
   public expenses: any[] = [];
+  public evidenceFiles: any[] = [];
   public supportCases: any[] = [];
   public issueReports: any[] = [];
+  public announcements: any[] = [];
 
   constructor() {
     this.seedDefaultData();
@@ -54,8 +56,10 @@ export class InMemoryDatabase implements IDatabaseClient {
     ];
     this.roles = systemRoles;
 
-    // Seed default admin with valid UUID
+    // Seed Admin Password Hash
     const adminPasswordHash = await hashPassword('AdminPass123!');
+    const studentPasswordHash = await hashPassword('StudentPass123!');
+
     const adminUser = {
       id: '00000000-0000-0000-0000-000000000001',
       email: 'admin@keydso.university.edu',
@@ -66,17 +70,70 @@ export class InMemoryDatabase implements IDatabaseClient {
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     };
-    this.profiles = [adminUser];
+
+    // Seed General President Profile
+    const genPresUser = {
+      id: '00000000-0000-0000-0000-000000000002',
+      email: 'president@keydso.university.edu',
+      password_hash: adminPasswordHash,
+      full_name: 'Mohamud Jama Duale',
+      contact_number: '+252 61 7000001',
+      bio: 'General President of the Student Representative Council. Office: Council House Room 10.',
+      is_active: true,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+
+    // Seed Faculty of Computing President Profile
+    const csitRepUser = {
+      id: '00000000-0000-0000-0000-000000000005',
+      email: 'csit.rep@keydso.university.edu',
+      password_hash: adminPasswordHash,
+      full_name: 'Hafsa Mohamed Ali',
+      contact_number: '+252 61 7000005',
+      bio: 'Faculty President, Computing & IT. IT Complex Room 102. Available Mon-Thu 1pm-3pm.',
+      is_active: true,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+
+    // Seed Faculty of Engineering President Profile
+    const engRepUser = {
+      id: '00000000-0000-0000-0000-000000000004',
+      email: 'eng.rep@keydso.university.edu',
+      password_hash: adminPasswordHash,
+      full_name: 'Eng. Khalid Abdi Farah',
+      contact_number: '+252 61 7000004',
+      bio: 'Faculty President, Engineering. Engineering Building Room 204. Available via WhatsApp.',
+      is_active: true,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+
+    // Seed Student User with linked student_id
+    const demoStudentUser = {
+      id: '00000000-0000-0000-0000-000000000099',
+      email: 'student.demo@keydso.university.edu',
+      password_hash: studentPasswordHash,
+      full_name: 'Safia Abdirahman Hassan',
+      contact_number: '+252 61 8999999',
+      student_id: '90000000-0000-0000-0000-000000000001',
+      is_active: true,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+
+    this.profiles = [adminUser, genPresUser, csitRepUser, engRepUser, demoStudentUser];
+
     this.userRoleAssignments = [
-      {
-        id: '01000000-0000-0000-0000-000000000001',
-        user_id: adminUser.id,
-        role_id: '10000000-0000-0000-0000-000000000001',
-        assigned_at: new Date().toISOString(),
-      },
+      { id: '01000000-0000-0000-0000-000000000001', user_id: adminUser.id, role_id: '10000000-0000-0000-0000-000000000001', assigned_at: new Date().toISOString() },
+      { id: '01000000-0000-0000-0000-000000000002', user_id: genPresUser.id, role_id: '10000000-0000-0000-0000-000000000002', assigned_at: new Date().toISOString() },
+      { id: '01000000-0000-0000-0000-000000000004', user_id: engRepUser.id, role_id: '10000000-0000-0000-0000-000000000004', assigned_at: new Date().toISOString() },
+      { id: '01000000-0000-0000-0000-000000000005', user_id: csitRepUser.id, role_id: '10000000-0000-0000-0000-000000000004', assigned_at: new Date().toISOString() },
+      { id: '01000000-0000-0000-0000-000000000099', user_id: demoStudentUser.id, role_id: '10000000-0000-0000-0000-000000000009', assigned_at: new Date().toISOString() },
     ];
 
-    // Seed default Academic Year with valid UUID
+    // Seed Academic Year & Semesters
     const ay = {
       id: '20000000-0000-0000-0000-000000000001',
       code: 'AY-2025-2026',
@@ -90,7 +147,6 @@ export class InMemoryDatabase implements IDatabaseClient {
     };
     this.academicYears = [ay];
 
-    // Seed default Semesters with valid UUID
     const s1 = {
       id: '21000000-0000-0000-0000-000000000001',
       academic_year_id: ay.id,
@@ -115,7 +171,7 @@ export class InMemoryDatabase implements IDatabaseClient {
     };
     this.semesters = [s1, s2];
 
-    // Seed default Faculties with valid UUID
+    // Seed Faculties
     const facEng = {
       id: '30000000-0000-0000-0000-000000000001',
       code: 'ENG',
@@ -145,7 +201,13 @@ export class InMemoryDatabase implements IDatabaseClient {
     };
     this.faculties = [facEng, facCsit, facBus];
 
-    // Seed default Departments with valid UUID
+    // Seed Faculty Assignments
+    this.facultyAssignments = [
+      { id: '02000000-0000-0000-0000-000000000001', user_id: engRepUser.id, faculty_id: facEng.id, academic_year_id: ay.id, role_title: 'Faculty President', is_active: true, assigned_at: new Date().toISOString() },
+      { id: '02000000-0000-0000-0000-000000000002', user_id: csitRepUser.id, faculty_id: facCsit.id, academic_year_id: ay.id, role_title: 'Faculty President', is_active: true, assigned_at: new Date().toISOString() },
+    ];
+
+    // Seed Departments
     const deptCs = {
       id: '40000000-0000-0000-0000-000000000001',
       faculty_id: facCsit.id,
@@ -175,7 +237,7 @@ export class InMemoryDatabase implements IDatabaseClient {
     };
     this.departments = [deptCs, deptSe, deptCivil];
 
-    // Seed Classes with valid UUID
+    // Seed Classes
     const classCs3 = {
       id: '50000000-0000-0000-0000-000000000001',
       department_id: deptCs.id,
@@ -187,17 +249,166 @@ export class InMemoryDatabase implements IDatabaseClient {
     };
     this.classes = [classCs3];
 
-    // Seed Core Fund with valid UUID
+    // Seed Demo Student Record
+    const demoStudent = {
+      id: '90000000-0000-0000-0000-000000000001',
+      student_id_number: 'STU-2024-001',
+      full_name: 'Safia Abdirahman Hassan',
+      faculty_id: facCsit.id,
+      department_id: deptCs.id,
+      class_id: classCs3.id,
+      academic_year_id: ay.id,
+      contact_number: '+252 61 8999999',
+      email: 'student.demo@keydso.university.edu',
+      enrollment_status: 'ACTIVE',
+      registration_date: '2024-09-01',
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+    this.students = [demoStudent];
+
+    // Seed Core Fund
     const genFund = {
       id: '60000000-0000-0000-0000-000000000001',
       code: 'GEN-FUND',
       name: 'General Student Council Fund',
       description: 'Primary treasury',
-      current_balance: 0.0,
+      current_balance: 1450.0,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     };
     this.funds = [genFund];
+
+    // Seed Contribution Campaign
+    const campaign = {
+      id: '70000000-0000-0000-0000-000000000001',
+      title: 'Semester 2 Campus Transparency & Welfare Drive',
+      code: 'CAMP-2026-S2',
+      description: 'Campus WiFi enhancement, student council governance, and emergency welfare aid.',
+      purpose: 'Infrastructure upgrade & student welfare support',
+      target_amount: 5000.0,
+      contribution_amount: 25.0,
+      campaign_type: 'FIXED_PER_STUDENT',
+      scope_type: 'UNIVERSITY_WIDE',
+      fund_id: genFund.id,
+      academic_year_id: ay.id,
+      semester_id: s2.id,
+      start_date: '2026-02-01',
+      end_date: '2026-05-30',
+      responsible_officer_id: adminUser.id,
+      status: 'ACTIVE',
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+    this.campaigns = [campaign];
+
+    // Seed Contribution Obligation for demo student
+    const obligation = {
+      id: '80000000-0000-0000-0000-000000000001',
+      student_id: demoStudent.id,
+      campaign_id: campaign.id,
+      expected_amount: 25.0,
+      verified_paid_amount: 25.0,
+      waived_amount: 0.0,
+      sponsored_amount: 0.0,
+      status: 'PAID',
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+    this.obligations = [obligation];
+
+    // Seed Verified Payment & Receipt
+    const payment = {
+      id: '91000000-0000-0000-0000-000000000001',
+      transaction_reference: 'EVC-PLUS-252618999999-TX101',
+      idempotency_key: 'idemp-tx-101',
+      student_id: demoStudent.id,
+      campaign_id: campaign.id,
+      amount: 25.0,
+      payment_method: 'MOBILE_MONEY',
+      payment_date: '2026-02-05',
+      receipt_number: 'REC-2026-0001',
+      status: 'VERIFIED',
+      recorded_by: adminUser.id,
+      verified_by: adminUser.id,
+      verification_date: new Date().toISOString(),
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+    this.payments = [payment];
+
+    const receipt = {
+      id: '92000000-0000-0000-0000-000000000001',
+      payment_id: payment.id,
+      receipt_number: 'REC-2026-0001',
+      student_name: demoStudent.full_name,
+      student_id_number: demoStudent.student_id_number,
+      amount: 25.0,
+      campaign_title: campaign.title,
+      issued_at: new Date().toISOString(),
+      issued_by: adminUser.id,
+      signature_hash: '9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08',
+    };
+    this.receipts = [receipt];
+
+    // Seed Sample Public Expense (Transparency Feed)
+    const expense = {
+      id: '93000000-0000-0000-0000-000000000001',
+      title: 'IT Lab Network Switches & High-Speed Patch Cables',
+      purpose: 'Replacement of faulty 24-port Gigabit switches in Central Computing Lab B',
+      description: 'Procured from TechZone Supplies under PO-2026-042',
+      campaign_id: campaign.id,
+      fund_id: genFund.id,
+      requested_amount: 320.0,
+      approved_amount: 320.0,
+      vendor_name: 'TechZone University Supplies Ltd',
+      vendor_contact: '+252 61 5554321',
+      requesting_officer_id: csitRepUser.id,
+      approved_by_president_id: genPresUser.id,
+      status: 'RECONCILED',
+      disbursed_at: '2026-02-10T10:00:00Z',
+      is_public_summary_published: true,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+    this.expenses = [expense];
+
+    this.evidenceFiles = [
+      {
+        id: '94000000-0000-0000-0000-000000000001',
+        entity_type: 'EXPENSE',
+        entity_id: expense.id,
+        file_name: 'Vendor_Invoice_TechZone_INV882.pdf',
+        file_path: 'expenses/invoices/INV882.pdf',
+        file_size_bytes: 425600,
+        mime_type: 'application/pdf',
+        is_public_evidence: true,
+        uploaded_by: adminUser.id,
+        created_at: new Date().toISOString(),
+      },
+    ];
+
+    // Seed Announcements
+    this.announcements = [
+      {
+        id: '70000000-0000-0000-0000-000000000001',
+        title: 'Welcome to Keydso Maanta — Student Council Transparency Portal',
+        content: 'The Student Representative Council is proud to launch Keydso Maanta. Every student can now track contribution campaigns, inspect expenditures, and connect directly with their faculty representatives.',
+        category: 'GENERAL',
+        target_audience: 'ALL',
+        author_name: 'Council Secretariat',
+        published_at: new Date().toISOString(),
+      },
+      {
+        id: '70000000-0000-0000-0000-000000000002',
+        title: 'Semester 2 Contribution Campaign Active',
+        content: 'The Semester 2 Campus Improvement and Student Support Campaign has been officially ratified. Receipts will be issued digitally upon verified payment.',
+        category: 'FINANCE',
+        target_audience: 'ALL',
+        author_name: 'Finance Committee',
+        published_at: new Date().toISOString(),
+      },
+    ];
   }
 
   public async query<R extends QueryResultRow = any>(text: string, params: any[] = []): Promise<QueryResult<R>> {

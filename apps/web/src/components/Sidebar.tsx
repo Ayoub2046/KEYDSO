@@ -4,12 +4,14 @@ import { useAuthStore } from '../store/authStore';
 import { RoleName } from '@keydso/shared-types';
 import {
   Users,
-  GraduationCap,
   Building2,
   Shield,
   FileSpreadsheet,
   History,
   LayoutDashboard,
+  DollarSign,
+  UserCheck,
+  ShieldCheck,
 } from 'lucide-react';
 
 export const Sidebar: React.FC = () => {
@@ -29,11 +31,38 @@ export const Sidebar: React.FC = () => {
       <div className="p-4 flex-1 space-y-6">
         <div>
           <div className="px-3 mb-2 text-xs font-semibold tracking-wider text-slate-400 uppercase">
-            Directory & Overview
+            Student Portal
+          </div>
+          <nav className="space-y-1">
+            <NavLink to="/portal" end className={navLinkClass}>
+              <LayoutDashboard className="w-4 h-4 text-sky-400" />
+              <span>Portal Dashboard</span>
+            </NavLink>
+
+            <NavLink to="/portal/contributions" className={navLinkClass}>
+              <DollarSign className="w-4 h-4 text-emerald-400" />
+              <span>My Contributions</span>
+            </NavLink>
+
+            <NavLink to="/portal/representatives" className={navLinkClass}>
+              <UserCheck className="w-4 h-4 text-amber-400" />
+              <span>My Representatives</span>
+            </NavLink>
+
+            <NavLink to="/portal/transparency" className={navLinkClass}>
+              <ShieldCheck className="w-4 h-4 text-cyan-400" />
+              <span>Spending Transparency</span>
+            </NavLink>
+          </nav>
+        </div>
+
+        <div>
+          <div className="px-3 mb-2 text-xs font-semibold tracking-wider text-slate-400 uppercase">
+            Directory
           </div>
           <nav className="space-y-1">
             <NavLink to="/students" className={navLinkClass}>
-              <Users className="w-4 h-4 text-sky-400" />
+              <Users className="w-4 h-4 text-slate-400" />
               <span>Student Directory</span>
             </NavLink>
           </nav>
@@ -70,8 +99,8 @@ export const Sidebar: React.FC = () => {
       </div>
 
       <div className="p-4 border-t border-slate-800 text-xs text-slate-400">
-        <p className="font-semibold text-slate-300">Phase 1 Foundation</p>
-        <p className="mt-0.5">RBAC & Academic Structure</p>
+        <p className="font-semibold text-slate-300">Keydso Maanta PWA</p>
+        <p className="mt-0.5">Phase 2: Student Portal Ready</p>
       </div>
     </aside>
   );

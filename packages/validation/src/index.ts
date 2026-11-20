@@ -133,3 +133,14 @@ export const AssignFacultyRepSchema = z.object({
   academic_year_id: z.string().uuid('Invalid academic year UUID'),
   role_title: z.string().trim().min(2).max(100).default('Faculty President'),
 });
+
+// --- Student Portal & Feedback Schemas ---
+export const StudentFeedbackSchema = z.object({
+  title: z.string().trim().min(3, 'Title must be at least 3 characters').max(150),
+  category: z.enum(['ACADEMIC', 'INFRASTRUCTURE', 'WELFARE', 'ADMINISTRATIVE', 'FINANCIAL', 'OTHER']),
+  priority: z.enum(['LOW', 'MEDIUM', 'HIGH', 'CRITICAL']).default('MEDIUM'),
+  description: z.string().trim().min(10, 'Description must be at least 10 characters').max(2000),
+  faculty_id: z.string().uuid().optional(),
+  department_id: z.string().uuid().optional(),
+});
+export type StudentFeedbackInput = z.infer<typeof StudentFeedbackSchema>;

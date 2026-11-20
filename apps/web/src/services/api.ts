@@ -1,4 +1,20 @@
-import { ApiResponse, PaginatedResponse, Student, Faculty, Department, ClassCohort, AcademicYear, Semester, UserProfile, RoleName } from '@keydso/shared-types';
+import {
+  ApiResponse,
+  PaginatedResponse,
+  Student,
+  Faculty,
+  Department,
+  ClassCohort,
+  AcademicYear,
+  Semester,
+  UserProfile,
+  RoleName,
+  StudentPortalOverview,
+  RepresentativeInfo,
+  StudentReceipt,
+  PublicExpenseSummary,
+  Announcement,
+} from '@keydso/shared-types';
 
 const API_BASE = '/api/v1';
 
@@ -35,6 +51,15 @@ export const api = {
     request<any>('/auth/login', { method: 'POST', body: JSON.stringify(data) }),
   getMe: () => request<UserProfile & { roles: RoleName[]; assigned_faculty_id?: string }>('/auth/me'),
 
+  // Student Portal
+  getPortalOverview: () => request<StudentPortalOverview>('/portal/overview'),
+  getRepresentatives: (facultyId?: string) =>
+    request<RepresentativeInfo[]>(facultyId ? `/portal/representatives?faculty_id=${facultyId}` : '/portal/representatives'),
+  getReceipt: (receiptNumber: string) => request<StudentReceipt>(`/portal/receipts/${receiptNumber}`),
+  submitFeedback: (data: any) => request<any>('/portal/feedback', { method: 'POST', body: JSON.stringify(data) }),
+  getTransparencyFeed: () => request<PublicExpenseSummary[]>('/portal/transparency'),
+  getAnnouncements: () => request<Announcement[]>('/portal/announcements'),
+
   // Academic
   getAcademicYears: () => request<AcademicYear[]>('/academic/academic-years'),
   createAcademicYear: (data: any) => request<AcademicYear>('/academic/academic-years', { method: 'POST', body: JSON.stringify(data) }),
@@ -50,7 +75,7 @@ export const api = {
     request<ClassCohort[]>(departmentId ? `/academic/classes?department_id=${departmentId}` : '/academic/classes'),
   createClass: (data: any) => request<ClassCohort>('/academic/classes', { method: 'POST', body: JSON.stringify(data) }),
 
-  // Students
+  // Students Directory & Bulk Import
   getStudents: (params: { faculty_id?: string; department_id?: string; search?: string; page?: number; page_size?: number }) => {
     const query = new URLSearchParams();
     if (params.faculty_id) query.append('faculty_id', params.faculty_id);
