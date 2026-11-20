@@ -14,6 +14,12 @@ import {
   StudentReceipt,
   PublicExpenseSummary,
   Announcement,
+  ContributionCampaign,
+  Fund,
+  Payment,
+  Expense,
+  LedgerEntry,
+  WelfareCase,
 } from '@keydso/shared-types';
 
 const API_BASE = '/api/v1';
@@ -94,4 +100,58 @@ export const api = {
   createUser: (data: any) => request<any>('/admin/users', { method: 'POST', body: JSON.stringify(data) }),
   assignFacultyRep: (data: any) => request<any>('/admin/assign-faculty-rep', { method: 'POST', body: JSON.stringify(data) }),
   getAuditLogs: (page = 1) => request<PaginatedResponse<any>>(`/admin/audit-logs?page=${page}`),
+
+  // Finance
+  getCampaigns: (academicYearId?: string) =>
+    request<ContributionCampaign[]>(academicYearId ? `/finance/campaigns?academic_year_id=${academicYearId}` : '/finance/campaigns'),
+  createCampaign: (data: any) =>
+    request<ContributionCampaign>('/finance/campaigns', { method: 'POST', body: JSON.stringify(data) }),
+  approveCampaign: (id: string) =>
+    request<{ campaign: ContributionCampaign; generated_obligations: number }>(`/finance/campaigns/${id}/approve`, { method: 'POST' }),
+
+  getPayments: (params?: { campaign_id?: string; student_id?: string; status?: string }) => {
+    const query = new URLSearchParams();
+    if (params?.campaign_id) query.append('campaign_id', params.campaign_id);
+    if (params?.student_id) query.append('student_id', params.student_id);
+    if (params?.status) query.append('status', params.status);
+    const qs = query.toString();
+    return request<Payment[]>(qs ? `/finance/payments?${qs}` : '/finance/payments');
+  },
+  recordPayment: (data: any) =>
+    request<Payment>('/finance/payments', { method: 'POST', body: JSON.stringify(data) }),
+  verifyPayment: (id: string, data: { verification_note?: string } = {}) =>
+    request<{ payment: Payment; receipt: any; ledgerEntry: any }>(`/finance/payments/${id}/verify`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+  reversePayment: (id: string, data: { reversal_reason: string }) =>
+    request<{ payment: Payment; ledgerEntry: any }>(`/finance/payments/${id}/reverse`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  getExpenses: (fundId?: string) =>
+    request<Expense[]>(fundId ? `/finance/expenses?fund_id=${fundId}` : '/finance/expenses'),
+  createExpenseRequest: (data: any) =>
+    request<Expense>('/finance/expenses', { method: 'POST', body: JSON.stringify(data) }),
+  approveExpense: (id: string, data: { approved_amount?: number; remarks?: string } = {}) =>
+    request<Expense>(`/finance/expenses/${id}/approve`, { method: 'POST', body: JSON.stringify(data) }),
+  disburseExpense: (id: string) =>
+    request<{ expense: Expense; ledgerEntry: any }>(`/finance/expenses/${id}/disburse`, { method: 'POST' }),
+  reconcileExpense: (id: string, data: { evidence_files: any[]; final_amount?: number; invoice_number?: string }) =>
+    request<Expense>(`/finance/expenses/${id}/reconcile`, { method: 'POST', body: JSON.stringify(data) }),
+
+  getLedger: (params?: { fund_id?: string; page?: number; page_size?: number }) => {
+    const query = new URLSearchParams();
+    if (params?.fund_id) query.append('fund_id', params.fund_id);
+    if (params?.page) query.append('page', params.page.toString());
+    if (params?.page_size) query.append('page_size', params.page_size.toString());
+    const qs = query.toString();
+    return request<PaginatedResponse<LedgerEntry>>(qs ? `/finance/ledger?${qs}` : '/finance/ledger');
+  },
+  getFunds: () => request<Fund[]>('/finance/funds'),
+
+  getWelfareCases: () => request<WelfareCase[]>('/finance/welfare'),
+  createWelfareCase: (data: { student_id: string; confidential_reason: string; requested_amount: number }) =>
+    request<WelfareCase>('/finance/welfare', { method: 'POST', body: JSON.stringify(data) }),
 };

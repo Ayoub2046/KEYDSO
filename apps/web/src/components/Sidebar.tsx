@@ -12,12 +12,23 @@ import {
   DollarSign,
   UserCheck,
   ShieldCheck,
+  CreditCard,
+  CheckSquare,
+  ShoppingBag,
+  BookOpen,
+  HeartHandshake,
 } from 'lucide-react';
 
 export const Sidebar: React.FC = () => {
   const { user } = useAuthStore();
   const roles = user?.roles || [];
   const isAdmin = roles.includes(RoleName.SYSTEM_ADMIN);
+  const isFinance = roles.includes(RoleName.FINANCE_OFFICER) || isAdmin;
+  const isExecutive =
+    roles.includes(RoleName.GENERAL_PRESIDENT) ||
+    roles.includes(RoleName.VICE_PRESIDENT) ||
+    isAdmin;
+  const hasFinanceAccess = isFinance || isExecutive;
 
   const navLinkClass = ({ isActive }: { isActive: boolean }) =>
     `flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm font-medium transition-all ${
@@ -68,6 +79,49 @@ export const Sidebar: React.FC = () => {
           </nav>
         </div>
 
+        {hasFinanceAccess && (
+          <div>
+            <div className="px-3 mb-2 text-xs font-semibold tracking-wider text-slate-400 uppercase">
+              Finance & Treasury
+            </div>
+            <nav className="space-y-1">
+              <NavLink to="/finance/campaigns" className={navLinkClass}>
+                <DollarSign className="w-4 h-4 text-emerald-400" />
+                <span>Campaigns</span>
+              </NavLink>
+
+              {isFinance && (
+                <NavLink to="/finance/record-payment" className={navLinkClass}>
+                  <CreditCard className="w-4 h-4 text-sky-400" />
+                  <span>Record Intake</span>
+                </NavLink>
+              )}
+
+              {isFinance && (
+                <NavLink to="/finance/verification-queue" className={navLinkClass}>
+                  <CheckSquare className="w-4 h-4 text-amber-400" />
+                  <span>Verification Queue</span>
+                </NavLink>
+              )}
+
+              <NavLink to="/finance/expenses" className={navLinkClass}>
+                <ShoppingBag className="w-4 h-4 text-indigo-400" />
+                <span>Expenditures</span>
+              </NavLink>
+
+              <NavLink to="/finance/ledger" className={navLinkClass}>
+                <BookOpen className="w-4 h-4 text-cyan-400" />
+                <span>General Ledger</span>
+              </NavLink>
+
+              <NavLink to="/finance/welfare" className={navLinkClass}>
+                <HeartHandshake className="w-4 h-4 text-pink-400" />
+                <span>Welfare & Hardship</span>
+              </NavLink>
+            </nav>
+          </div>
+        )}
+
         {isAdmin && (
           <div>
             <div className="px-3 mb-2 text-xs font-semibold tracking-wider text-slate-400 uppercase">
@@ -100,7 +154,7 @@ export const Sidebar: React.FC = () => {
 
       <div className="p-4 border-t border-slate-800 text-xs text-slate-400">
         <p className="font-semibold text-slate-300">Keydso Maanta PWA</p>
-        <p className="mt-0.5">Phase 2: Student Portal Ready</p>
+        <p className="mt-0.5">Phase 3: Financial Core Ready</p>
       </div>
     </aside>
   );

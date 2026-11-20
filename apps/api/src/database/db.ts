@@ -123,7 +123,31 @@ export class InMemoryDatabase implements IDatabaseClient {
       updated_at: new Date().toISOString(),
     };
 
-    this.profiles = [adminUser, genPresUser, csitRepUser, engRepUser, demoStudentUser];
+    // Finance Officer A — records payments
+    const financeOfficerA = {
+      id: '00000000-0000-0000-0000-000000000010',
+      email: 'finance.a@keydso.university.edu',
+      password_hash: adminPasswordHash,
+      full_name: 'Finance Officer Aisha',
+      contact_number: '+252 61 7000010',
+      is_active: true,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+
+    // Finance Officer B — verifies payments (four-eyes)
+    const financeOfficerB = {
+      id: '00000000-0000-0000-0000-000000000011',
+      email: 'finance.b@keydso.university.edu',
+      password_hash: adminPasswordHash,
+      full_name: 'Finance Officer Bashir',
+      contact_number: '+252 61 7000011',
+      is_active: true,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+
+    this.profiles = [adminUser, genPresUser, csitRepUser, engRepUser, demoStudentUser, financeOfficerA, financeOfficerB];
 
     this.userRoleAssignments = [
       { id: '01000000-0000-0000-0000-000000000001', user_id: adminUser.id, role_id: '10000000-0000-0000-0000-000000000001', assigned_at: new Date().toISOString() },
@@ -131,6 +155,8 @@ export class InMemoryDatabase implements IDatabaseClient {
       { id: '01000000-0000-0000-0000-000000000004', user_id: engRepUser.id, role_id: '10000000-0000-0000-0000-000000000004', assigned_at: new Date().toISOString() },
       { id: '01000000-0000-0000-0000-000000000005', user_id: csitRepUser.id, role_id: '10000000-0000-0000-0000-000000000004', assigned_at: new Date().toISOString() },
       { id: '01000000-0000-0000-0000-000000000099', user_id: demoStudentUser.id, role_id: '10000000-0000-0000-0000-000000000009', assigned_at: new Date().toISOString() },
+      { id: '01000000-0000-0000-0000-000000000010', user_id: financeOfficerA.id, role_id: '10000000-0000-0000-0000-000000000005', assigned_at: new Date().toISOString() },
+      { id: '01000000-0000-0000-0000-000000000011', user_id: financeOfficerB.id, role_id: '10000000-0000-0000-0000-000000000005', assigned_at: new Date().toISOString() },
     ];
 
     // Seed Academic Year & Semesters

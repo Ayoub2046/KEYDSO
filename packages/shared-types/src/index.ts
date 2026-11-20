@@ -203,6 +203,136 @@ export type ExpenseStatus =
   | 'RECONCILED'
   | 'REJECTED';
 
+export interface ContributionCampaign {
+  id: string;
+  title: string;
+  code: string;
+  description: string;
+  purpose: string;
+  target_amount: number;
+  contribution_amount: number;
+  campaign_type: CampaignType;
+  scope_type: 'UNIVERSITY_WIDE' | 'FACULTY' | 'DEPARTMENT' | 'CLASS' | 'CUSTOM';
+  fund_id: string;
+  fund_name?: string;
+  academic_year_id: string;
+  semester_id: string;
+  start_date: string;
+  end_date: string;
+  eligible_faculty_ids?: string[];
+  eligible_department_ids?: string[];
+  responsible_officer_id: string;
+  status: CampaignStatus;
+  obligations_count?: number;
+  total_expected?: number;
+  total_collected?: number;
+  collection_rate_percentage?: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Fund {
+  id: string;
+  code: string;
+  name: string;
+  description?: string;
+  current_balance: number;
+  total_credits?: number;
+  total_debits?: number;
+  ledger_entry_count?: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Payment {
+  id: string;
+  campaign_id: string;
+  campaign_title?: string;
+  student_id: string;
+  student_name?: string;
+  student_id_number?: string;
+  amount: number;
+  payment_method: PaymentMethod;
+  payment_date: string;
+  transaction_reference: string;
+  idempotency_key: string;
+  receipt_number?: string | null;
+  status: PaymentStatus;
+  notes?: string | null;
+  recorded_by: string;
+  recorded_by_name?: string;
+  verified_by?: string | null;
+  verification_date?: string | null;
+  verification_note?: string | null;
+  reversal_reason?: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Expense {
+  id: string;
+  title: string;
+  purpose: string;
+  description?: string;
+  campaign_id: string;
+  campaign_title?: string;
+  fund_id: string;
+  fund_name?: string;
+  requested_amount: number;
+  approved_amount?: number;
+  vendor_name: string;
+  vendor_contact?: string;
+  requesting_officer_id: string;
+  requesting_officer_name?: string;
+  approved_by_president_id?: string;
+  approver_name?: string;
+  status: ExpenseStatus;
+  disbursed_at?: string;
+  is_public_summary_published: boolean;
+  evidence_files?: {
+    id: string;
+    file_name: string;
+    file_path: string;
+    file_size_bytes: number;
+    mime_type: string;
+    is_public_evidence: boolean;
+    created_at: string;
+  }[];
+  created_at: string;
+  updated_at: string;
+}
+
+export interface LedgerEntry {
+  id: string;
+  fund_id: string;
+  fund_name?: string;
+  entry_type: 'CREDIT' | 'DEBIT';
+  amount: number;
+  balance_after: number;
+  reference_type: string;
+  reference_id: string;
+  description: string;
+  created_by: string;
+  creator_name?: string;
+  created_at: string;
+}
+
+export interface WelfareCase {
+  id: string;
+  case_number: string;
+  student_id: string;
+  student_name?: string;
+  student_id_number?: string;
+  confidential_reason: string;
+  requested_amount: number;
+  approved_amount: number;
+  status: 'SUBMITTED' | 'UNDER_REVIEW' | 'APPROVED' | 'REJECTED' | 'DISBURSED';
+  welfare_reviewer_id?: string;
+  reviewer_name?: string;
+  created_at: string;
+  updated_at: string;
+}
+
 // --- Student Portal Domain Types ---
 export interface RepresentativeInfo {
   id: string;
