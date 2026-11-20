@@ -1,6 +1,7 @@
 import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
 import { apiV1Router } from './modules';
 import { AppError } from './common/errors';
 import { logger } from './common/logger';
@@ -8,7 +9,7 @@ import { config } from './common/config';
 
 export const app = express();
 
-// Security Headers
+// Security Headers (OWASP Recommended)
 app.use(
   helmet({
     contentSecurityPolicy: {
@@ -17,11 +18,50 @@ app.use(
         scriptSrc: ["'self'"],
         styleSrc: ["'self'", "'unsafe-inline'"],
         imgSrc: ["'self'", 'data:', 'https:'],
+        connectSrc: ["'self'", 'https:'],
       },
     },
     crossOriginEmbedderPolicy: false,
+    referrerPolicy: { policy: 'same-origin' },
   })
 );
+
+// General Rate Limiter (Protects against DoS / brute force)
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 1000,
+  message: {
+    success: false,
+    error: {
+      code: 'RATE_LIMIT_EXCEEDED',
+      message: 'Too many requests from this IP. Please try again after 15 minutes.',
+    },
+    timestamp: new Date().toISOString(),
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+  skip: () => config.isTest, // Disable rate limiting during automated test runs
+});
+
+// Stricter Auth Rate Limiter (Protects against credential stuffing)
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 30, // 30 login attempts per 15 minutes per IP
+  message: {
+    success: false,
+    error: {
+      code: 'AUTH_RATE_LIMIT_EXCEEDED',
+      message: 'Too many authentication attempts. Please wait 15 minutes before retrying.',
+    },
+    timestamp: new Date().toISOString(),
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+  skip: () => config.isTest,
+});
+
+app.use('/api/', apiLimiter);
+app.use('/api/v1/auth/login', authLimiter);
 
 // CORS configuration
 app.use(
@@ -62,6 +102,18 @@ app.use((req: Request, res: Response) => {
 
 // Centralized Error Handling Middleware
 app.use((err: unknown, req: Request, res: Response, _next: NextFunction) => {
+  // Malformed JSON parser error
+  if (err instanceof SyntaxError && 'status' in err && (err as any).status === 400) {
+    return res.status(400).json({
+      success: false,
+      error: {
+        code: 'MALFORMED_JSON',
+        message: 'Malformed JSON payload syntax',
+      },
+      timestamp: new Date().toISOString(),
+    });
+  }
+
   if (err instanceof AppError) {
     logger.warn(`API Exception: ${err.message}`, {
       code: err.code,

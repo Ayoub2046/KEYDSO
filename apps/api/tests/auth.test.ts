@@ -1,8 +1,15 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeAll } from 'vitest';
 import request from 'supertest';
 import { app } from '../src/app';
+import { db, InMemoryDatabase } from '../src/database/db';
 
 describe('Auth & Security API', () => {
+  beforeAll(async () => {
+    if (db instanceof InMemoryDatabase) {
+      await db.seedDefaultData();
+    }
+  });
+
   it('POST /api/v1/auth/login — succeeds with valid seed admin credentials', async () => {
     const res = await request(app)
       .post('/api/v1/auth/login')

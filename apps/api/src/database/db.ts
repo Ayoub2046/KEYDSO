@@ -801,7 +801,7 @@ class PostgresDatabase implements IDatabaseClient {
 }
 
 // Initialize singleton DB instance
-export const db: InMemoryDatabase | PostgresDatabase =
+export const db: any =
   config.databaseUrl && !config.isTest
     ? new PostgresDatabase(config.databaseUrl)
     : new InMemoryDatabase();
