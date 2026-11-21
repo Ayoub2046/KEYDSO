@@ -9,7 +9,7 @@ export const config = {
   port: parseInt(process.env.PORT || '4000', 10),
   databaseUrl: process.env.DATABASE_URL || '',
   jwtSecret: process.env.JWT_SECRET || 'dev-insecure-jwt-secret-replace-in-production-64bytes-min',
-  jwtExpiresIn: process.env.JWT_EXPIRES_IN || '1h',
+  jwtExpiresIn: process.env.JWT_EXPIRES_IN || '7d',
   refreshTokenSecret: process.env.REFRESH_TOKEN_SECRET || 'dev-insecure-refresh-secret-replace-in-production-64bytes',
   refreshTokenExpiresIn: process.env.REFRESH_TOKEN_EXPIRES_IN || '7d',
   corsOrigin: process.env.CORS_ORIGIN || '*',

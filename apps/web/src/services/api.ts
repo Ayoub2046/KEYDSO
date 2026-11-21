@@ -72,6 +72,15 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
 
   if (!response.ok || !payload.success) {
     const errorMsg = (payload as any).error?.message || payload.message || 'API request failed';
+    // Auto-clear stale/expired token on 401 so user is redirected to login
+    if (response.status === 401) {
+      localStorage.removeItem('keydso_token');
+      localStorage.removeItem('keydso_user');
+      // Reload to landing page so authStore resets cleanly
+      if (typeof window !== 'undefined' && !window.location.pathname.includes('/login') && !window.location.pathname === ('/' as any)) {
+        window.location.href = '/';
+      }
+    }
     throw new Error(errorMsg);
   }
 
