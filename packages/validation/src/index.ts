@@ -107,9 +107,9 @@ export type StudentRegisterInput = z.infer<typeof StudentRegisterSchema>;
 export const StudentCsvRowSchema = z.object({
   student_id_number: z.string().trim().min(1, 'Student ID number is required'),
   full_name: z.string().trim().min(2, 'Full name is required'),
-  faculty_code: z.string().trim().min(1, 'Faculty code is required'),
-  department_code: z.string().trim().min(1, 'Department code is required'),
-  class_name: z.string().trim().min(1, 'Class cohort name is required'),
+  faculty_code: z.string().trim().optional().default('CSIT'),
+  department_code: z.string().trim().optional().default('CS'),
+  class_name: z.string().trim().optional().default('Class of 2026'),
   contact_number: z.string().trim().optional(),
   email: z.string().trim().email('Invalid email format').optional().or(z.literal('')),
   registration_date: z

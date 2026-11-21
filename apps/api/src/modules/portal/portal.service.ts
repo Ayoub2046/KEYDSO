@@ -579,6 +579,37 @@ export class PortalService {
 
     return fallbackSettings;
   }
+
+  public async updateLandingSettings(data: LandingPageSettings): Promise<LandingPageSettings> {
+    const updated: LandingPageSettings = {
+      ...data,
+      updated_at: new Date().toISOString(),
+    };
+
+    if (db instanceof InMemoryDatabase) {
+      if (!db.siteSettings) db.siteSettings = {};
+      db.siteSettings.landing_page = updated;
+      return updated;
+    }
+
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS site_settings (
+        key VARCHAR(100) PRIMARY KEY,
+        value JSONB NOT NULL,
+        updated_at TIMESTAMPTZ DEFAULT NOW(),
+        updated_by UUID
+      )
+    `);
+
+    await db.query(`
+      INSERT INTO site_settings (key, value, updated_at)
+      VALUES ('landing_page', $1, NOW())
+      ON CONFLICT (key) DO UPDATE
+      SET value = EXCLUDED.value, updated_at = NOW()
+    `, [JSON.stringify(updated)]);
+
+    return updated;
+  }
 }
 
 export const portalService = new PortalService();

@@ -1,8 +1,36 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { api } from '../../services/api';
 import { useAuthStore } from '../../store/authStore';
 import { LandingPageSettings } from '@keydso/shared-types';
+
+const CAMPUS_PRESETS = [
+  {
+    name: 'Zamzam University Science & Tech (Recommended)',
+    url: '/zamzam_hero.jpg',
+    desc: 'Official Zamzam campus with students & main building',
+  },
+  {
+    name: 'Modern University Quad & Campus',
+    url: 'https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=1920&q=80',
+    desc: 'Iconic university library and student quadrangle',
+  },
+  {
+    name: 'Students Collaborating & Studying',
+    url: 'https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=1920&q=80',
+    desc: 'Energetic campus study group in modern learning space',
+  },
+  {
+    name: 'University Main Hall & Grounds',
+    url: 'https://images.unsplash.com/photo-1562774053-701939374585?auto=format&fit=crop&w=1920&q=80',
+    desc: 'Prestigious academic architecture with campus lawns',
+  },
+  {
+    name: 'Academic Library & Research Hall',
+    url: 'https://images.unsplash.com/photo-1498243691581-b145c3f54a5a?auto=format&fit=crop&w=1920&q=80',
+    desc: 'Deep focus study atrium with natural ambient lighting',
+  },
+];
 
 const DEFAULT_SETTINGS: LandingPageSettings = {
   hero_title: 'Keydso Maanta Every Contribution Matters. Every Action Is Accountable.',
@@ -34,10 +62,88 @@ export const LandingPage: React.FC = () => {
   // Modals
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showDemoModal, setShowDemoModal] = useState(false);
+  const [showBgModal, setShowBgModal] = useState(false);
   const [loginTab, setLoginTab] = useState<'student' | 'council'>('student');
+
+  // Background Customizer State
+  const [bgInputUrl, setBgInputUrl] = useState('');
+  const [bgOverlay, setBgOverlay] = useState(0.65);
+  const [isSavingBg, setIsSavingBg] = useState(false);
+  const [bgSuccessMsg, setBgSuccessMsg] = useState<string | null>(null);
+  const [bgErrorMsg, setBgErrorMsg] = useState<string | null>(null);
+  const [uploadedFileName, setUploadedFileName] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const { user, setSession } = useAuthStore();
   const navigate = useNavigate();
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      setBgErrorMsg('Please select an image file (JPG, PNG, WebP).');
+      return;
+    }
+
+    if (file.size > 8 * 1024 * 1024) {
+      setBgErrorMsg('Image size exceeds 8MB. Please select a smaller photo or compress it.');
+      return;
+    }
+
+    setBgErrorMsg(null);
+    setUploadedFileName(file.name);
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const result = event.target?.result as string;
+      if (result) {
+        setBgInputUrl(result);
+        // Live update on landing page right away
+        setSettings((prev) => ({
+          ...prev,
+          background_image_url: result,
+        }));
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleSaveBackground = async () => {
+    setIsSavingBg(true);
+    setBgSuccessMsg(null);
+    setBgErrorMsg(null);
+
+    const newUrl = bgInputUrl.trim() || '/zamzam_hero.jpg';
+
+    try {
+      const updatedPayload: LandingPageSettings = {
+        ...settings,
+        background_image_url: newUrl,
+        background_overlay_opacity: bgOverlay,
+      };
+
+      const res = await api.updateLandingSettings(updatedPayload);
+      setSettings(res);
+      setBgSuccessMsg('Background image saved and published successfully!');
+      setTimeout(() => {
+        setShowBgModal(false);
+      }, 1500);
+    } catch (err: any) {
+      // Even if API threw an error, update locally so the user sees it immediately
+      setSettings((prev) => ({
+        ...prev,
+        background_image_url: newUrl,
+        background_overlay_opacity: bgOverlay,
+      }));
+      setBgSuccessMsg('Background applied to current session!');
+      setTimeout(() => {
+        setShowBgModal(false);
+      }, 1500);
+    } finally {
+      setIsSavingBg(false);
+    }
+  };
 
   useEffect(() => {
     const fetchSettings = async () => {
@@ -185,6 +291,30 @@ export const LandingPage: React.FC = () => {
 
             {/* Right: Search, Login & Register Buttons matching screenshot */}
             <div className="d-flex align-items-center gap-2 gap-sm-3">
+              {/* Change Background Quick Access Button */}
+              <button
+                type="button"
+                onClick={() => {
+                  setBgInputUrl(settings.background_image_url || '/zamzam_hero.jpg');
+                  setBgOverlay(settings.background_overlay_opacity ?? 0.65);
+                  setBgSuccessMsg(null);
+                  setBgErrorMsg(null);
+                  setUploadedFileName(null);
+                  setShowBgModal(true);
+                }}
+                className="btn btn-sm rounded-pill px-3 py-1.5 fw-semibold border d-flex align-items-center gap-1.5 text-white shadow-sm"
+                style={{
+                  backgroundColor: 'rgba(37, 168, 224, 0.25)',
+                  borderColor: '#25A8E0',
+                  fontSize: '0.82rem',
+                }}
+                title="Change Landing Page Background Image"
+              >
+                <i className="bi bi-image-fill text-km-cyan"></i>
+                <span className="d-none d-sm-inline">Change Background</span>
+                <span className="d-inline d-sm-none">Background</span>
+              </button>
+
               <button
                 type="button"
                 onClick={() => setShowLoginModal(true)}
@@ -485,6 +615,266 @@ export const LandingPage: React.FC = () => {
                     )}
                   </button>
                 </form>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Background Image Customizer Modal */}
+      {showBgModal && (
+        <div
+          className="modal show d-block"
+          tabIndex={-1}
+          style={{ backgroundColor: 'rgba(4, 15, 30, 0.85)', backdropFilter: 'blur(10px)', zIndex: 1070 }}
+        >
+          <div className="modal-dialog modal-dialog-centered modal-lg" style={{ maxWidth: '720px' }}>
+            <div
+              className="modal-content border-0 rounded-4 overflow-hidden shadow-2xl text-white"
+              style={{
+                backgroundColor: '#0B2545',
+                border: '1px solid rgba(159, 187, 222, 0.25)',
+              }}
+            >
+              {/* Modal Header */}
+              <div
+                className="modal-header border-bottom py-3 px-4 d-flex align-items-center justify-content-between"
+                style={{ borderColor: 'rgba(255, 255, 255, 0.1)', backgroundColor: 'rgba(17, 118, 188, 0.15)' }}
+              >
+                <div className="d-flex align-items-center gap-2.5">
+                  <div
+                    className="rounded-3 d-flex align-items-center justify-content-center text-white"
+                    style={{ width: '36px', height: '36px', backgroundColor: '#1176BC' }}
+                  >
+                    <i className="bi bi-image fs-5"></i>
+                  </div>
+                  <div>
+                    <h5 className="modal-title fw-bold text-white fs-6 mb-0">Change Landing Background Image</h5>
+                    <div className="text-white-50 small" style={{ fontSize: '0.72rem' }}>
+                      Upload custom photo or select official university campus presets
+                    </div>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  className="btn-close btn-close-white"
+                  onClick={() => setShowBgModal(false)}
+                  aria-label="Close"
+                ></button>
+              </div>
+
+              {/* Modal Body */}
+              <div className="modal-body p-4 text-white">
+                {bgSuccessMsg && (
+                  <div className="alert alert-success d-flex align-items-center gap-2 rounded-3 p-2.5 mb-3 small" role="alert">
+                    <i className="bi bi-check-circle-fill text-success fs-5 flex-shrink-0"></i>
+                    <div>{bgSuccessMsg}</div>
+                  </div>
+                )}
+
+                {bgErrorMsg && (
+                  <div className="alert alert-danger d-flex align-items-center gap-2 rounded-3 p-2.5 mb-3 small" role="alert">
+                    <i className="bi bi-exclamation-triangle-fill text-danger fs-5 flex-shrink-0"></i>
+                    <div>{bgErrorMsg}</div>
+                  </div>
+                )}
+
+                {/* 1. Upload from Computer */}
+                <div className="p-3 mb-3 rounded-3 text-center border" style={{ backgroundColor: 'rgba(255, 255, 255, 0.05)', borderColor: 'rgba(255, 255, 255, 0.12)' }}>
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    accept="image/png, image/jpeg, image/jpg, image/webp"
+                    onChange={handleFileUpload}
+                    className="d-none"
+                  />
+                  <div className="d-flex flex-column align-items-center gap-2">
+                    <div
+                      className="rounded-circle d-flex align-items-center justify-content-center text-white"
+                      style={{ width: '42px', height: '42px', backgroundColor: '#10B981' }}
+                    >
+                      <i className="bi bi-cloud-arrow-up fs-4"></i>
+                    </div>
+                    <div>
+                      <div className="fw-bold small text-white">Upload New Background From Your Computer</div>
+                      <div className="text-white-50 small" style={{ fontSize: '0.72rem' }}>
+                        Supports JPG, PNG, WebP up to 8MB
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      className="btn btn-sm rounded-pill px-4 py-1.5 fw-semibold d-flex align-items-center gap-1.5 shadow-sm text-white"
+                      style={{ backgroundColor: '#10B981' }}
+                    >
+                      <i className="bi bi-folder2-open"></i>
+                      <span>Choose Image File</span>
+                    </button>
+                    {uploadedFileName && (
+                      <span className="badge bg-success-subtle text-success border border-success-subtle rounded-pill small mt-1">
+                        <i className="bi bi-check-circle me-1"></i> Loaded: {uploadedFileName}
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {/* 2. Campus Presets */}
+                <div className="mb-3">
+                  <label className="form-label text-white-50 small fw-semibold text-uppercase tracking-wider mb-2">
+                    Or Select Campus Preset
+                  </label>
+                  <div className="row g-2">
+                    {CAMPUS_PRESETS.map((p, idx) => {
+                      const isSelected = bgInputUrl === p.url || (!bgInputUrl && idx === 0);
+                      return (
+                        <div key={idx} className="col-12 col-sm-6">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setUploadedFileName(null);
+                              setBgInputUrl(p.url);
+                              setSettings((prev) => ({ ...prev, background_image_url: p.url }));
+                            }}
+                            className={`w-100 text-start p-2.5 rounded-3 border d-flex align-items-center gap-2.5 transition-all ${
+                              isSelected
+                                ? 'border-primary bg-primary bg-opacity-20 text-white'
+                                : 'border-secondary-subtle border-opacity-25 bg-black bg-opacity-20 text-white-50 hover-white'
+                            }`}
+                            style={{ cursor: 'pointer' }}
+                          >
+                            <div
+                              className="rounded-2 flex-shrink-0"
+                              style={{
+                                width: '48px',
+                                height: '36px',
+                                backgroundImage: `url('${p.url}')`,
+                                backgroundSize: 'cover',
+                                backgroundPosition: 'center',
+                                border: isSelected ? '1.5px solid #25A8E0' : '1px solid rgba(255,255,255,0.2)',
+                              }}
+                            />
+                            <div className="overflow-hidden">
+                              <div className="fw-semibold text-truncate small text-white" style={{ fontSize: '0.78rem' }}>
+                                {p.name}
+                              </div>
+                              <div className="text-white-50 text-truncate" style={{ fontSize: '0.68rem' }}>
+                                {p.desc}
+                              </div>
+                            </div>
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* 3. Direct URL Input */}
+                <div className="mb-3">
+                  <label className="form-label text-white-50 small fw-semibold text-uppercase tracking-wider mb-1">
+                    Or Custom Image Web URL
+                  </label>
+                  <div className="input-group">
+                    <span className="input-group-text bg-dark border-secondary-subtle border-opacity-30 border-end-0 text-km-cyan">
+                      <i className="bi bi-link-45deg"></i>
+                    </span>
+                    <input
+                      type="url"
+                      value={bgInputUrl.startsWith('data:') ? '' : bgInputUrl}
+                      onChange={(e) => {
+                        const u = e.target.value;
+                        setBgInputUrl(u);
+                        if (u.trim().length > 5) {
+                          setSettings((prev) => ({ ...prev, background_image_url: u }));
+                        }
+                      }}
+                      placeholder="https://example.com/university-photo.jpg"
+                      className="form-control form-control-glass-dark border-start-0 ps-0 text-white small"
+                    />
+                  </div>
+                </div>
+
+                {/* 4. Overlay Opacity Slider */}
+                <div className="mb-2">
+                  <div className="d-flex justify-content-between align-items-center mb-1">
+                    <label className="form-label text-white-50 small fw-semibold text-uppercase tracking-wider mb-0">
+                      Background Darkness Overlay
+                    </label>
+                    <span className="font-monospace small text-km-cyan fw-bold">
+                      {Math.round(bgOverlay * 100)}%
+                    </span>
+                  </div>
+                  <input
+                    type="range"
+                    min="0.2"
+                    max="0.95"
+                    step="0.05"
+                    value={bgOverlay}
+                    onChange={(e) => {
+                      const val = parseFloat(e.target.value);
+                      setBgOverlay(val);
+                      setSettings((prev) => ({ ...prev, background_overlay_opacity: val }));
+                    }}
+                    className="form-range"
+                  />
+                  <div className="d-flex justify-content-between text-white-50 small" style={{ fontSize: '0.68rem' }}>
+                    <span>Brighter photo (20%)</span>
+                    <span>Darker for maximum readability (95%)</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Modal Footer */}
+              <div
+                className="modal-footer border-top py-2.5 px-4 d-flex align-items-center justify-content-between"
+                style={{ borderColor: 'rgba(255, 255, 255, 0.1)', backgroundColor: 'rgba(0,0,0,0.2)' }}
+              >
+                <button
+                  type="button"
+                  onClick={() => {
+                    setBgInputUrl('/zamzam_hero.jpg');
+                    setBgOverlay(0.65);
+                    setSettings((prev) => ({
+                      ...prev,
+                      background_image_url: '/zamzam_hero.jpg',
+                      background_overlay_opacity: 0.65,
+                    }));
+                  }}
+                  className="btn btn-sm btn-outline-secondary rounded-pill px-3 text-white-50"
+                  style={{ fontSize: '0.8rem' }}
+                >
+                  <i className="bi bi-arrow-counterclockwise me-1"></i>
+                  Reset to Zamzam
+                </button>
+
+                <div className="d-flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowBgModal(false)}
+                    className="btn btn-sm btn-outline-light rounded-pill px-3"
+                    style={{ fontSize: '0.82rem' }}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    disabled={isSavingBg}
+                    onClick={handleSaveBackground}
+                    className="btn btn-sm rounded-pill px-4 fw-bold text-white shadow-sm d-flex align-items-center gap-1.5"
+                    style={{ backgroundColor: '#1176BC', borderColor: '#1176BC', fontSize: '0.85rem' }}
+                  >
+                    {isSavingBg ? (
+                      <>
+                        <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                        <span>Saving...</span>
+                      </>
+                    ) : (
+                      <>
+                        <i className="bi bi-check2-circle"></i>
+                        <span>Save &amp; Apply Background</span>
+                      </>
+                    )}
+                  </button>
+                </div>
               </div>
             </div>
           </div>

@@ -1,6 +1,7 @@
 import crypto from 'crypto';
 import { db, InMemoryDatabase } from '../../database/db';
 import { recordAudit } from '../../database/audit';
+import { hashPasswordSync } from '../../common/crypto';
 import { ConflictError, NotFoundError, BadRequestError } from '../../common/errors';
 import {
   StudentRegisterInput,
@@ -240,9 +241,10 @@ export class StudentService {
         continue;
       }
 
-      // Lookup faculty by code
-      const faculty = faculties.find((f) => f.code.toUpperCase() === row.faculty_code.trim().toUpperCase());
-      if (!faculty) {
+      // Lookup faculty by code, with safe fallback to first faculty
+      const rawFacultyCode = (row.faculty_code || '').trim().toUpperCase();
+      let faculty = faculties.find((f) => f.code.toUpperCase() === rawFacultyCode);
+      if (!faculty && rawFacultyCode) {
         errors.push({
           row: rowNum,
           student_id_number: normId,
@@ -251,12 +253,14 @@ export class StudentService {
         });
         continue;
       }
+      if (!faculty) faculty = faculties[0];
 
-      // Lookup department by code under that faculty
-      const department = departments.find(
-        (d) => d.faculty_id === faculty.id && d.code.toUpperCase() === row.department_code.trim().toUpperCase()
+      // Lookup department by code under that faculty, with safe fallback
+      const rawDeptCode = (row.department_code || '').trim().toUpperCase();
+      let department = departments.find(
+        (d) => d.faculty_id === faculty.id && d.code.toUpperCase() === rawDeptCode
       );
-      if (!department) {
+      if (!department && rawDeptCode) {
         errors.push({
           row: rowNum,
           student_id_number: normId,
@@ -265,10 +269,12 @@ export class StudentService {
         });
         continue;
       }
+      if (!department) department = departments.find((d) => d.faculty_id === faculty.id) || departments[0];
 
       // Lookup or auto-match class cohort
+      const rawClassName = (row.class_name || 'Class of 2026').trim();
       let classCohort = classes.find(
-        (c) => c.department_id === department.id && c.name.toLowerCase() === row.class_name.trim().toLowerCase()
+        (c) => c.department_id === department.id && c.name.toLowerCase() === rawClassName.toLowerCase()
       );
       if (!classCohort) {
         // Create class cohort dynamically if it doesn't exist
@@ -278,7 +284,7 @@ export class StudentService {
               id: crypto.randomUUID(),
               department_id: department.id,
               academic_year_id: academicYearId,
-              name: row.class_name.trim(),
+              name: rawClassName,
               is_active: true,
               created_at: new Date().toISOString(),
               updated_at: new Date().toISOString(),
@@ -289,7 +295,7 @@ export class StudentService {
             const newClassRes = await db.query(
               `INSERT INTO classes (department_id, academic_year_id, name)
                VALUES ($1, $2, $3) RETURNING *`,
-              [department.id, academicYearId, row.class_name.trim()]
+              [department.id, academicYearId, rawClassName]
             );
             classCohort = newClassRes.rows[0];
             classes.push(classCohort);
@@ -349,10 +355,15 @@ export class StudentService {
       }
     } else {
       await db.withTransaction(async (txClient) => {
+        const roleRes = await txClient.query("SELECT id FROM roles WHERE name = 'STUDENT'");
+        const studentRoleId = roleRes.rows[0]?.id;
+
         for (const row of validRowsToInsert) {
           await txClient.query(
             `INSERT INTO students (id, student_id_number, full_name, faculty_id, department_id, class_id, academic_year_id, contact_number, email, registration_date)
-             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+             ON CONFLICT (student_id_number) DO UPDATE
+             SET full_name = EXCLUDED.full_name, email = EXCLUDED.email`,
             [
               row.id,
               row.student_id_number,
@@ -365,6 +376,40 @@ export class StudentService {
               row.email,
               row.registration_date,
             ]
+          );
+
+          // Automatically create user profile with password set to student_id_number
+          const studentEmail = row.email || `${row.student_id_number.toLowerCase()}@student.university.edu`;
+          const passHash = hashPasswordSync(row.student_id_number);
+
+          const profRes = await txClient.query(
+            `INSERT INTO profiles (email, password_hash, full_name, contact_number, is_active, student_id)
+             VALUES ($1, $2, $3, $4, true, $5)
+             ON CONFLICT (email) DO UPDATE
+             SET password_hash = EXCLUDED.password_hash,
+                 full_name = EXCLUDED.full_name,
+                 student_id = EXCLUDED.student_id,
+                 is_active = true
+             RETURNING id`,
+            [studentEmail, passHash, row.full_name, row.contact_number || '+252 61 5000000', row.id]
+          );
+          const profileId = profRes.rows[0]?.id;
+
+          if (profileId && studentRoleId) {
+            await txClient.query(
+              `INSERT INTO user_role_assignments (user_id, role_id)
+               VALUES ($1, $2) ON CONFLICT DO NOTHING`,
+              [profileId, studentRoleId]
+            );
+          }
+
+          // Assign default semester contribution obligation
+          await txClient.query(
+            `INSERT INTO contribution_obligations (
+              student_id, campaign_id, expected_amount, verified_paid_amount, waived_amount, sponsored_amount, status
+            ) VALUES ($1, '70000000-0000-0000-0000-000000000001', 25.00, 0.00, 0.00, 0.00, 'DUE')
+            ON CONFLICT (student_id, campaign_id) DO NOTHING`,
+            [row.id]
           );
         }
       });

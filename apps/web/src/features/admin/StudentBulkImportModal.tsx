@@ -49,19 +49,70 @@ export const StudentBulkImportPage: React.FC = () => {
   };
 
   const parseCsvText = (text: string) => {
-    const lines = text.trim().split('\n').filter((l) => l.trim().length > 0);
-    if (lines.length < 2) return [];
+    const lines = text.trim().split(/\r?\n/).filter((l) => l.trim().length > 0);
+    if (lines.length === 0) return [];
 
-    const headers = lines[0].split(',').map((h) => h.trim());
+    // Detect delimiter: tab (if copied directly from Excel) or comma
+    const firstLine = lines[0];
+    const delimiter = firstLine.includes('\t') ? '\t' : ',';
+
+    const rawFirstParts = firstLine.split(delimiter).map((h) => h.trim());
+
+    // Check if first row is a header
+    const isHeader = rawFirstParts.some((p) =>
+      /^(name|full_name|student_id|id|student_id_number|faculty|class)/i.test(p)
+    );
+
     const records = [];
+    let headers: string[] = [];
 
-    for (let i = 1; i < lines.length; i++) {
-      const parts = lines[i].split(',').map((p) => p.trim());
-      const record: any = {};
-      headers.forEach((h, idx) => {
-        record[h] = parts[idx] || '';
+    if (isHeader) {
+      headers = rawFirstParts.map((h) => {
+        const clean = h.toLowerCase().replace(/[\s_-]+/g, '');
+        if (clean === 'name' || clean === 'fullname' || clean === 'studentname') return 'full_name';
+        if (clean === 'id' || clean === 'studentid' || clean === 'studentidnumber') return 'student_id_number';
+        if (clean === 'faculty' || clean === 'facultycode') return 'faculty_code';
+        if (clean === 'dept' || clean === 'department' || clean === 'departmentcode') return 'department_code';
+        if (clean === 'class' || clean === 'classname' || clean === 'cohort') return 'class_name';
+        if (clean === 'email') return 'email';
+        if (clean === 'contact' || clean === 'phone' || clean === 'contactnumber') return 'contact_number';
+        return h.trim();
       });
-      records.push(record);
+    }
+
+    const startIndex = isHeader ? 1 : 0;
+
+    for (let i = startIndex; i < lines.length; i++) {
+      const parts = lines[i].split(delimiter).map((p) => p.trim());
+      if (parts.length < 2) continue;
+
+      const record: any = {
+        faculty_code: 'CSIT',
+        department_code: 'CS',
+        class_name: 'Class of 2026',
+      };
+
+      if (isHeader) {
+        headers.forEach((h, idx) => {
+          record[h] = parts[idx] || '';
+        });
+      } else {
+        // Auto-detect which column is ID and which is Name
+        if (/^[a-zA-Z]{2,4}\d{4,9}$/i.test(parts[0])) {
+          record.student_id_number = parts[0];
+          record.full_name = parts[1];
+        } else if (/^[a-zA-Z]{2,4}\d{4,9}$/i.test(parts[1])) {
+          record.full_name = parts[0];
+          record.student_id_number = parts[1];
+        } else {
+          record.full_name = parts[0];
+          record.student_id_number = parts[1];
+        }
+      }
+
+      if (record.student_id_number && record.full_name) {
+        records.push(record);
+      }
     }
     return records;
   };
@@ -194,12 +245,42 @@ export const StudentBulkImportPage: React.FC = () => {
                 </select>
               </div>
 
+              {/* Password Policy Banner */}
+              <div className="p-3 bg-sky-50 border border-sky-200 rounded-lg text-xs text-sky-850 flex items-start gap-2.5">
+                <ShieldCheck className="w-4 h-4 text-sky-600 flex-shrink-0 mt-0.5" />
+                <div>
+                  <strong className="text-sky-900">Automatic Credential Provisioning:</strong> Each student profile is automatically initialized with their <strong>Student ID</strong> as their default password (e.g. ID: <code>CIS231433</code> &rarr; Password: <code>CIS231433</code>).
+                </div>
+              </div>
+
               <div>
                 <div className="flex items-center justify-between mb-1">
                   <label className="text-xs font-semibold text-slate-700 uppercase">
-                    CSV Data Stream / Paste
+                    CSV / Excel Stream (Paste or Upload)
                   </label>
-                  <span className="text-xs text-slate-400">Comma-separated with header row</span>
+                  <label className="text-xs text-sky-600 hover:text-sky-800 font-semibold cursor-pointer flex items-center gap-1">
+                    <Upload className="w-3.5 h-3.5" />
+                    <span>Upload File</span>
+                    <input
+                      type="file"
+                      accept=".csv,.tsv,.txt"
+                      className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          const reader = new FileReader();
+                          reader.onload = (ev) => {
+                            const text = ev.target?.result as string;
+                            if (text) {
+                              setCsvContent(text);
+                              setValidationResult(null);
+                            }
+                          };
+                          reader.readAsText(file);
+                        }
+                      }}
+                    />
+                  </label>
                 </div>
                 <textarea
                   rows={9}
@@ -208,6 +289,7 @@ export const StudentBulkImportPage: React.FC = () => {
                     setCsvContent(e.target.value);
                     setValidationResult(null);
                   }}
+                  placeholder="Paste directly from Excel (e.g. Name [tab] Student ID) or comma-separated rows..."
                   className="w-full font-mono text-xs p-3.5 bg-slate-50 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500"
                 />
               </div>

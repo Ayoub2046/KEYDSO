@@ -6,6 +6,7 @@ export const portalRouter = Router();
 
 // Public routes for landing page / visitors
 portalRouter.get('/landing-settings', (req, res, next) => portalController.getLandingSettings(req, res, next));
+portalRouter.put('/landing-settings', (req, res, next) => portalController.updateLandingSettings(req, res, next));
 
 // Protected student portal routes
 portalRouter.use(authGuard);

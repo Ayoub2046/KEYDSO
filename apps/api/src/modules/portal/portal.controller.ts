@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { portalService } from './portal.service';
 import { sendSuccess } from '../../common/response';
-import { StudentFeedbackSchema } from '@keydso/validation';
+import { StudentFeedbackSchema, LandingSettingsSchema } from '@keydso/validation';
 
 export class PortalController {
   public async getOverview(req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -64,6 +64,16 @@ export class PortalController {
     try {
       const settings = await portalService.getLandingSettings();
       sendSuccess(res, settings, 'Landing page settings retrieved');
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  public async updateLandingSettings(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const validated = LandingSettingsSchema.parse(req.body);
+      const settings = await portalService.updateLandingSettings(validated);
+      sendSuccess(res, settings, 'Landing page settings updated successfully');
     } catch (err) {
       next(err);
     }

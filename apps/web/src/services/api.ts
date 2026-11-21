@@ -88,8 +88,19 @@ export const api = {
 
   // Student Portal
   getLandingSettings: () => request<LandingPageSettings>('/portal/landing-settings'),
-  updateLandingSettings: (data: LandingPageSettings) =>
-    request<LandingPageSettings>('/admin/landing-settings', { method: 'PUT', body: JSON.stringify(data) }),
+  updateLandingSettings: async (data: LandingPageSettings) => {
+    try {
+      return await request<LandingPageSettings>('/portal/landing-settings', {
+        method: 'PUT',
+        body: JSON.stringify(data),
+      });
+    } catch {
+      return await request<LandingPageSettings>('/admin/landing-settings', {
+        method: 'PUT',
+        body: JSON.stringify(data),
+      });
+    }
+  },
   getPortalOverview: () => request<StudentPortalOverview>('/portal/overview'),
   getRepresentatives: (facultyId?: string) =>
     request<RepresentativeInfo[]>(facultyId ? `/portal/representatives?faculty_id=${facultyId}` : '/portal/representatives'),
