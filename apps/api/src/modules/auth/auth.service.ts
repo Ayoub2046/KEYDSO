@@ -57,21 +57,46 @@ export class AuthService {
       if (facAssign) assignedFacultyId = facAssign.faculty_id;
     } else {
       // PostgreSQL / Supabase
-      // 1. Try finding by email
-      let userRes = await db.query('SELECT * FROM profiles WHERE LOWER(email) = LOWER($1)', [identifier]);
+      // 1. Check profiles by email, or join students by student_id_number
+      let userRes = await db.query(
+        `SELECT p.*, s.student_id_number, s.full_name as student_name
+         FROM profiles p
+         LEFT JOIN students s ON s.id = p.student_id
+         WHERE LOWER(p.email) = LOWER($1)
+            OR LOWER(s.student_id_number) = LOWER($1)
+            OR LOWER(p.email) = LOWER($1 || '@student.university.edu')
+         LIMIT 1`,
+        [identifier]
+      );
 
-      // 2. If not found by email, check students table by student_id_number
+      // 2. If profile wasn't found, check if student exists in students table and auto-provision
       if (userRes.rowCount === 0) {
         const studentRes = await db.query(
-          'SELECT * FROM students WHERE LOWER(student_id_number) = LOWER($1)',
+          'SELECT * FROM students WHERE LOWER(student_id_number) = LOWER($1) LIMIT 1',
           [identifier]
         );
         if (studentRes.rowCount > 0) {
           const student = studentRes.rows[0];
+          const studentEmail = student.email || `${student.student_id_number.toLowerCase()}@student.university.edu`;
+          const passHash = hashPasswordSync(student.student_id_number);
           userRes = await db.query(
-            'SELECT * FROM profiles WHERE student_id = $1 OR LOWER(email) = LOWER($2)',
-            [student.id, student.email]
+            `INSERT INTO profiles (email, password_hash, full_name, contact_number, is_active, student_id)
+             VALUES ($1, $2, $3, $4, true, $5)
+             ON CONFLICT (email) DO UPDATE
+             SET student_id = EXCLUDED.student_id, is_active = true
+             RETURNING *`,
+            [studentEmail, passHash, student.full_name, student.contact_number || '+252 61 5000000', student.id]
           );
+
+          // Assign default STUDENT role
+          const roleRes = await db.query("SELECT id FROM roles WHERE name = 'STUDENT'");
+          if (roleRes.rows[0]?.id && userRes.rows[0]?.id) {
+            await db.query(
+              `INSERT INTO user_role_assignments (user_id, role_id)
+               VALUES ($1, $2) ON CONFLICT DO NOTHING`,
+              [userRes.rows[0].id, roleRes.rows[0].id]
+            );
+          }
         }
       }
 
@@ -85,13 +110,21 @@ export class AuthService {
       }
 
       let isValid = await verifyPassword(input.password, user.password_hash);
-      // Fallback: check if password matches student_id_number directly for first-time login
-      if (!isValid && user.student_id) {
-        const stuCheck = await db.query(
-          'SELECT student_id_number FROM students WHERE id = $1',
-          [user.student_id]
-        );
-        if (stuCheck.rows[0]?.student_id_number?.toLowerCase() === input.password.toLowerCase()) {
+      // Student ID password check (case-insensitive)
+      if (!isValid) {
+        const trimmedInputPass = input.password.trim().toLowerCase();
+        if (user.student_id_number && user.student_id_number.toLowerCase() === trimmedInputPass) {
+          isValid = true;
+        } else if (user.student_id) {
+          const stuCheck = await db.query(
+            'SELECT student_id_number FROM students WHERE id = $1',
+            [user.student_id]
+          );
+          if (stuCheck.rows[0]?.student_id_number?.toLowerCase() === trimmedInputPass) {
+            isValid = true;
+          }
+        }
+        if (!isValid && identifier.toLowerCase() === trimmedInputPass) {
           isValid = true;
         }
       }

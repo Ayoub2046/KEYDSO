@@ -5,6 +5,7 @@ import { ConflictError, NotFoundError, BadRequestError } from '../../common/erro
 import { hashPassword } from '../../common/crypto';
 import { RoleName, LandingPageSettings } from '@keydso/shared-types';
 import { LandingSettingsInput } from '@keydso/validation';
+import { portalService } from '../portal/portal.service';
 
 export class AdminService {
   public async getUsers() {
@@ -227,7 +228,9 @@ export class AdminService {
   }
 
   public async updateLandingSettings(data: LandingSettingsInput, actorId: string): Promise<LandingPageSettings> {
+    const current = await portalService.getLandingSettings();
     const updated: LandingPageSettings = {
+      ...current,
       ...data,
       updated_at: new Date().toISOString(),
     };

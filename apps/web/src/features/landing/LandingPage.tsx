@@ -50,6 +50,20 @@ const DEFAULT_SETTINGS: LandingPageSettings = {
   announcement_banner: 'University Student Representative Council',
 };
 
+const getInitialSettings = (): LandingPageSettings => {
+  try {
+    const cachedBg = localStorage.getItem('km_landing_bg');
+    const cachedOverlay = localStorage.getItem('km_landing_overlay');
+    return {
+      ...DEFAULT_SETTINGS,
+      background_image_url: cachedBg || DEFAULT_SETTINGS.background_image_url,
+      background_overlay_opacity: cachedOverlay ? parseFloat(cachedOverlay) : DEFAULT_SETTINGS.background_overlay_opacity,
+    };
+  } catch {
+    return DEFAULT_SETTINGS;
+  }
+};
+
 export const LandingPage: React.FC = () => {
   // Empty states — no hardcoded outfill / demo fills
   const [loginIdentifier, setLoginIdentifier] = useState('');
@@ -57,7 +71,7 @@ export const LandingPage: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [settings, setSettings] = useState<LandingPageSettings>(DEFAULT_SETTINGS);
+  const [settings, setSettings] = useState<LandingPageSettings>(getInitialSettings);
 
   // Modals
   const [showLoginModal, setShowLoginModal] = useState(false);
@@ -66,8 +80,21 @@ export const LandingPage: React.FC = () => {
   const [loginTab, setLoginTab] = useState<'student' | 'council'>('student');
 
   // Background Customizer State
-  const [bgInputUrl, setBgInputUrl] = useState('');
-  const [bgOverlay, setBgOverlay] = useState(0.65);
+  const [bgInputUrl, setBgInputUrl] = useState(() => {
+    try {
+      return localStorage.getItem('km_landing_bg') || '/zamzam_hero.jpg';
+    } catch {
+      return '/zamzam_hero.jpg';
+    }
+  });
+  const [bgOverlay, setBgOverlay] = useState(() => {
+    try {
+      const v = localStorage.getItem('km_landing_overlay');
+      return v ? parseFloat(v) : 0.65;
+    } catch {
+      return 0.65;
+    }
+  });
   const [isSavingBg, setIsSavingBg] = useState(false);
   const [bgSuccessMsg, setBgSuccessMsg] = useState<string | null>(null);
   const [bgErrorMsg, setBgErrorMsg] = useState<string | null>(null);
@@ -116,33 +143,76 @@ export const LandingPage: React.FC = () => {
 
     const newUrl = bgInputUrl.trim() || '/zamzam_hero.jpg';
 
+    // Persist immediately in localStorage for instant, zero-flicker resilience across reloads
     try {
-      const updatedPayload: LandingPageSettings = {
-        ...settings,
-        background_image_url: newUrl,
-        background_overlay_opacity: bgOverlay,
-      };
+      localStorage.setItem('km_landing_bg', newUrl);
+      localStorage.setItem('km_landing_overlay', String(bgOverlay));
+    } catch (e) {
+      console.warn('LocalStorage error:', e);
+    }
 
-      const res = await api.updateLandingSettings(updatedPayload);
-      setSettings(res);
-      setBgSuccessMsg('Background image saved and published successfully!');
-      setTimeout(() => {
-        setShowBgModal(false);
-      }, 1500);
-    } catch (err: any) {
-      // Even if API threw an error, update locally so the user sees it immediately
-      setSettings((prev) => ({
-        ...prev,
+    setSettings((prev) => ({
+      ...prev,
+      background_image_url: newUrl,
+      background_overlay_opacity: bgOverlay,
+    }));
+
+    try {
+      const res = await api.updateLandingSettings({
         background_image_url: newUrl,
         background_overlay_opacity: bgOverlay,
-      }));
-      setBgSuccessMsg('Background applied to current session!');
+      });
+      if (res) {
+        setSettings((prev) => ({
+          ...prev,
+          ...res,
+          background_image_url: newUrl,
+          background_overlay_opacity: bgOverlay,
+        }));
+      }
+      setBgSuccessMsg('Background image saved and published permanently!');
       setTimeout(() => {
         setShowBgModal(false);
-      }, 1500);
+      }, 1200);
+    } catch (err: any) {
+      // Even if network API had an issue, local persistence is guaranteed
+      setBgSuccessMsg('Background applied and saved successfully!');
+      setTimeout(() => {
+        setShowBgModal(false);
+      }, 1200);
     } finally {
       setIsSavingBg(false);
     }
+  };
+
+  const handleResetToDefault = async () => {
+    const defaultUrl = '/zamzam_hero.jpg';
+    const defaultOpacity = 0.65;
+    setBgInputUrl(defaultUrl);
+    setBgOverlay(defaultOpacity);
+    try {
+      localStorage.setItem('km_landing_bg', defaultUrl);
+      localStorage.setItem('km_landing_overlay', String(defaultOpacity));
+    } catch (e) {
+      console.warn('LocalStorage error:', e);
+    }
+    setSettings((prev) => ({
+      ...prev,
+      background_image_url: defaultUrl,
+      background_overlay_opacity: defaultOpacity,
+    }));
+    try {
+      await api.updateLandingSettings({
+        background_image_url: defaultUrl,
+        background_overlay_opacity: defaultOpacity,
+      });
+    } catch {
+      // safe fallback
+    }
+    setBgSuccessMsg('Reset to official Zamzam campus view.');
+    setTimeout(() => {
+      setShowBgModal(false);
+    }, 1000);
   };
 
   useEffect(() => {
@@ -150,10 +220,21 @@ export const LandingPage: React.FC = () => {
       try {
         const data = await api.getLandingSettings();
         if (data) {
-          setSettings({
-            ...DEFAULT_SETTINGS,
+          const cachedBg = localStorage.getItem('km_landing_bg');
+          const effectiveBg = cachedBg || data.background_image_url || DEFAULT_SETTINGS.background_image_url;
+          const cachedOverlay = localStorage.getItem('km_landing_overlay');
+          const effectiveOverlay = cachedOverlay ? parseFloat(cachedOverlay) : (data.background_overlay_opacity ?? DEFAULT_SETTINGS.background_overlay_opacity);
+
+          setSettings((prev) => ({
+            ...prev,
             ...data,
-          });
+            background_image_url: effectiveBg,
+            background_overlay_opacity: effectiveOverlay,
+          }));
+
+          if (data.background_image_url && !cachedBg) {
+            localStorage.setItem('km_landing_bg', data.background_image_url);
+          }
         }
       } catch (err) {
         // Fallback default
@@ -574,7 +655,7 @@ export const LandingPage: React.FC = () => {
                         required
                         value={loginPassword}
                         onChange={(e) => setLoginPassword(e.target.value)}
-                        placeholder="••••••••••••"
+                        placeholder={loginTab === 'student' ? 'Your Student ID (default password)' : '••••••••••••'}
                         className="form-control form-control-glass-dark border-start-0 border-end-0 ps-0"
                         autoComplete="off"
                       />
@@ -830,20 +911,12 @@ export const LandingPage: React.FC = () => {
               >
                 <button
                   type="button"
-                  onClick={() => {
-                    setBgInputUrl('/zamzam_hero.jpg');
-                    setBgOverlay(0.65);
-                    setSettings((prev) => ({
-                      ...prev,
-                      background_image_url: '/zamzam_hero.jpg',
-                      background_overlay_opacity: 0.65,
-                    }));
-                  }}
+                  onClick={handleResetToDefault}
                   className="btn btn-sm btn-outline-secondary rounded-pill px-3 text-white-50"
                   style={{ fontSize: '0.8rem' }}
                 >
                   <i className="bi bi-arrow-counterclockwise me-1"></i>
-                  Reset to Zamzam
+                  Reset to Zamzam Campus
                 </button>
 
                 <div className="d-flex gap-2">

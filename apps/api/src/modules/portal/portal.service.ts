@@ -580,8 +580,10 @@ export class PortalService {
     return fallbackSettings;
   }
 
-  public async updateLandingSettings(data: LandingPageSettings): Promise<LandingPageSettings> {
+  public async updateLandingSettings(data: Partial<LandingPageSettings>): Promise<LandingPageSettings> {
+    const current = await this.getLandingSettings();
     const updated: LandingPageSettings = {
+      ...current,
       ...data,
       updated_at: new Date().toISOString(),
     };

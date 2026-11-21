@@ -375,21 +375,20 @@ export type CreateNotificationInput = z.infer<typeof CreateNotificationSchema>;
 
 // --- Landing Page CMS Settings Schema ---
 export const LandingSettingsSchema = z.object({
-  hero_title: z.string().trim().min(3, 'Title is required').max(200),
-  hero_subtitle: z.string().trim().min(5, 'Subtitle is required').max(500),
-  badge_text: z.string().trim().min(2, 'Badge is required').max(100),
-  background_image_url: z.string().trim().min(5, 'Background image URL is required'),
-  background_overlay_opacity: z.number().min(0).max(1).default(0.75),
-  stat_students_count: z.string().trim().min(1).max(50),
-  stat_treasury_amount: z.string().trim().min(1).max(50),
-  stat_audit_rate: z.string().trim().min(1).max(50),
-  feature_1_title: z.string().trim().min(2).max(100),
-  feature_1_desc: z.string().trim().min(5).max(300),
-  feature_2_title: z.string().trim().min(2).max(100),
-  feature_2_desc: z.string().trim().min(5).max(300),
-  feature_3_title: z.string().trim().min(2).max(100),
-  feature_3_desc: z.string().trim().min(5).max(300),
+  hero_title: z.string().trim().min(2).max(250).optional(),
+  hero_subtitle: z.string().trim().min(2).max(600).optional(),
+  badge_text: z.string().trim().min(1).max(100).optional(),
+  background_image_url: z.string().trim().min(1).optional(),
+  background_overlay_opacity: z.number().min(0).max(1).optional().default(0.65),
+  stat_students_count: z.string().trim().max(50).optional(),
+  stat_treasury_amount: z.string().trim().max(50).optional(),
+  stat_audit_rate: z.string().trim().max(50).optional(),
+  feature_1_title: z.string().trim().max(100).optional(),
+  feature_1_desc: z.string().trim().max(500).optional(),
+  feature_2_title: z.string().trim().max(100).optional(),
+  feature_2_desc: z.string().trim().max(500).optional(),
+  feature_3_title: z.string().trim().max(100).optional(),
+  feature_3_desc: z.string().trim().max(500).optional(),
   announcement_banner: z.string().trim().max(300).optional().nullable(),
 });
 export type LandingSettingsInput = z.infer<typeof LandingSettingsSchema>;
-

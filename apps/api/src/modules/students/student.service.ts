@@ -188,6 +188,7 @@ export class StudentService {
     const errors: StudentImportRowError[] = [];
     const seenIdsInBatch = new Set<string>();
     const validRowsToInsert: any[] = [];
+    let existingCount = 0;
 
     // Preload academic entities for lookup
     let faculties: any[] = [];
@@ -230,15 +231,9 @@ export class StudentService {
       }
       seenIdsInBatch.add(normId);
 
-      // Check duplicate in database
+      // Check if existing in database (will be updated / refreshed rather than rejected)
       if (existingStudentIds.has(normId)) {
-        errors.push({
-          row: rowNum,
-          student_id_number: normId,
-          field: 'student_id_number',
-          error: `Student ID '${normId}' already registered in institution database`,
-        });
-        continue;
+        existingCount++;
       }
 
       // Lookup faculty by code, with safe fallback to first faculty
@@ -323,7 +318,7 @@ export class StudentService {
         total_rows: records.length,
         valid_rows: validRowsToInsert.length,
         imported_count: 0,
-        duplicate_count: records.length - validRowsToInsert.length - errors.length,
+        duplicate_count: existingCount,
         error_count: errors.length,
         errors,
         is_dry_run: true,
@@ -336,7 +331,7 @@ export class StudentService {
         total_rows: records.length,
         valid_rows: validRowsToInsert.length,
         imported_count: 0,
-        duplicate_count: 0,
+        duplicate_count: existingCount,
         error_count: errors.length,
         errors,
         is_dry_run: false,
@@ -427,7 +422,7 @@ export class StudentService {
       total_rows: records.length,
       valid_rows: validRowsToInsert.length,
       imported_count: validRowsToInsert.length,
-      duplicate_count: 0,
+      duplicate_count: existingCount,
       error_count: 0,
       errors: [],
       is_dry_run: false,

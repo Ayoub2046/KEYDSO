@@ -88,7 +88,7 @@ export const api = {
 
   // Student Portal
   getLandingSettings: () => request<LandingPageSettings>('/portal/landing-settings'),
-  updateLandingSettings: async (data: LandingPageSettings) => {
+  updateLandingSettings: async (data: Partial<LandingPageSettings>) => {
     try {
       return await request<LandingPageSettings>('/portal/landing-settings', {
         method: 'PUT',
