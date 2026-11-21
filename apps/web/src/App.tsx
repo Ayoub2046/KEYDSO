@@ -1,5 +1,6 @@
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
+import { LandingPage } from './features/landing/LandingPage';
 import { LoginPage } from './features/auth/LoginPage';
 import { Layout } from './components/Layout';
 import { ProtectedRoute } from './routes/ProtectedRoute';
@@ -12,6 +13,7 @@ import { AcademicManager } from './features/admin/AcademicManager';
 import { UserRoleManager } from './features/admin/UserRoleManager';
 import { StudentBulkImportPage } from './features/admin/StudentBulkImportModal';
 import { AuditLogsViewer } from './features/admin/AuditLogsViewer';
+import { LandingPageCustomizer } from './features/admin/LandingPageCustomizer';
 import { CampaignManager } from './features/finance/CampaignManager';
 import { PaymentRecorder } from './features/finance/PaymentRecorder';
 import { PaymentVerificationQueue } from './features/finance/PaymentVerificationQueue';
@@ -29,11 +31,15 @@ import { RoleName } from '@keydso/shared-types';
 export const App: React.FC = () => {
   return (
     <Routes>
+      {/* Public Routes */}
+      <Route path="/" element={<LandingPage />} />
       <Route path="/login" element={<LoginPage />} />
 
+      {/* Protected Council & Student Portal Routes */}
       <Route element={<ProtectedRoute />}>
         <Route element={<Layout />}>
-          <Route path="/" element={<Navigate to="/portal" replace />} />
+          {/* Universal Role-Tailored Master Dashboard */}
+          <Route path="/dashboard" element={<CouncilDashboard />} />
 
           {/* Student Portal Routes */}
           <Route path="/portal" element={<StudentPortalDashboard />} />
@@ -58,24 +64,14 @@ export const App: React.FC = () => {
             }
           >
             <Route path="/finance/campaigns" element={<CampaignManager />} />
+            <Route path="/finance/payments/record" element={<PaymentRecorder />} />
+            <Route path="/finance/payments/verify" element={<PaymentVerificationQueue />} />
             <Route path="/finance/expenses" element={<ExpenseWorkflow />} />
             <Route path="/finance/ledger" element={<LedgerViewer />} />
             <Route path="/finance/welfare" element={<WelfareManager />} />
           </Route>
 
-          {/* Finance Officer Specific Intake & Verification Queue */}
-          <Route
-            element={
-              <ProtectedRoute
-                allowedRoles={[RoleName.FINANCE_OFFICER, RoleName.SYSTEM_ADMIN]}
-              />
-            }
-          >
-            <Route path="/finance/record-payment" element={<PaymentRecorder />} />
-            <Route path="/finance/verification-queue" element={<PaymentVerificationQueue />} />
-          </Route>
-
-          {/* Council Governance Routes */}
+          {/* Governance & Assembly Routes */}
           <Route
             element={
               <ProtectedRoute
@@ -95,42 +91,48 @@ export const App: React.FC = () => {
             <Route path="/governance/faculty" element={<FacultyWorkspace />} />
             <Route path="/governance/committees" element={<CommitteesManager />} />
             <Route path="/governance/meetings" element={<MeetingsManager />} />
+            <Route path="/governance/challenges" element={<FacultyChallengesPage />} />
           </Route>
 
-          {/* Challenges / Issues (Open to All Authenticated Users) */}
-          <Route path="/governance/challenges" element={<FacultyChallengesPage />} />
-
-          {/* Reports & Analytics Routes */}
+          {/* Landing Page CMS Customizer */}
           <Route
             element={
               <ProtectedRoute
+                allowedRoles={[RoleName.SYSTEM_ADMIN, RoleName.GENERAL_PRESIDENT]}
+              />
+            }
+          >
+            <Route path="/admin/landing-settings" element={<LandingPageCustomizer />} />
+          </Route>
+
+          {/* System Admin Routes */}
+          <Route element={<ProtectedRoute allowedRoles={[RoleName.SYSTEM_ADMIN]} />}>
+            <Route path="/admin/academics" element={<AcademicManager />} />
+            <Route path="/admin/roles" element={<UserRoleManager />} />
+            <Route path="/admin/import" element={<StudentBulkImportPage />} />
+            <Route path="/admin/audit-logs" element={<AuditLogsViewer />} />
+          </Route>
+
+          {/* Analytics & Reports */}
+          <Route
+            path="/reports"
+            element={
+              <ProtectedRoute
                 allowedRoles={[
-                  RoleName.SYSTEM_ADMIN,
                   RoleName.GENERAL_PRESIDENT,
                   RoleName.VICE_PRESIDENT,
                   RoleName.FINANCE_OFFICER,
-                  RoleName.SECRETARY,
-                  RoleName.FACULTY_PRESIDENT,
-                  RoleName.COMMITTEE_CHAIR,
-                  RoleName.COMMITTEE_MEMBER,
+                  RoleName.SYSTEM_ADMIN,
                 ]}
               />
             }
           >
-            <Route path="/reports" element={<ReportsDashboard />} />
+            <Route index element={<ReportsDashboard />} />
           </Route>
 
-          {/* Admin Restricted Routes */}
-          <Route element={<ProtectedRoute allowedRoles={[RoleName.SYSTEM_ADMIN]} />}>
-            <Route path="/admin/academic" element={<AcademicManager />} />
-            <Route path="/admin/users" element={<UserRoleManager />} />
-            <Route path="/admin/import" element={<StudentBulkImportPage />} />
-            <Route path="/admin/audit" element={<AuditLogsViewer />} />
-          </Route>
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
       </Route>
-
-      <Route path="*" element={<Navigate to="/portal" replace />} />
     </Routes>
   );
 };

@@ -2,7 +2,7 @@ import { Pool, QueryResult, QueryResultRow } from 'pg';
 import crypto from 'crypto';
 import { config } from '../common/config';
 import { logger } from '../common/logger';
-import { hashPassword } from '../common/crypto';
+import { hashPasswordSync } from '../common/crypto';
 import { RoleName } from '@keydso/shared-types';
 
 export interface IDatabaseClient {
@@ -43,12 +43,13 @@ export class InMemoryDatabase implements IDatabaseClient {
   public meetingAttendance: any[] = [];
   public notifications: any[] = [];
   public pushSubscriptions: any[] = [];
+  public siteSettings: Record<string, any> = {};
 
   constructor() {
     this.seedDefaultData();
   }
 
-  public async seedDefaultData() {
+  public seedDefaultData() {
     // Seed system roles with valid UUIDs
     const systemRoles = [
       { id: '10000000-0000-0000-0000-000000000001', name: RoleName.SYSTEM_ADMIN, description: 'System Administrator' },
@@ -64,8 +65,8 @@ export class InMemoryDatabase implements IDatabaseClient {
     this.roles = systemRoles;
 
     // Seed Admin Password Hash
-    const adminPasswordHash = await hashPassword('AdminPass123!');
-    const studentPasswordHash = await hashPassword('StudentPass123!');
+    const adminPasswordHash = hashPasswordSync('AdminPass123!');
+    const studentPasswordHash = hashPasswordSync('StudentPass123!');
 
     const adminUser = {
       id: '00000000-0000-0000-0000-000000000001',
@@ -748,6 +749,27 @@ export class InMemoryDatabase implements IDatabaseClient {
     ];
 
     this.pushSubscriptions = [];
+
+    this.siteSettings = {
+      landing_page: {
+        hero_title: 'Every Contribution Matters. Every Action Is Accountable.',
+        hero_subtitle: 'Keydso Maanta is the official institutional platform for student representation, verifiable semester dues, and complete treasury transparency at the University.',
+        badge_text: 'Official Student Council Portal',
+        background_image_url: 'https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=1920&q=80',
+        background_overlay_opacity: 0.75,
+        stat_students_count: 'Enrolled & Verified',
+        stat_treasury_amount: '$1,450.00',
+        stat_audit_rate: '100% HMAC Verified',
+        feature_1_title: 'Cryptographic Receipts',
+        feature_1_desc: 'Every semester payment generates an HMAC-SHA256 verified digital receipt with an immutable verification code.',
+        feature_2_title: 'Public Spending Feed',
+        feature_2_desc: 'Council disbursements exceeding $500 require dual executive approval and are immediately published with attached invoices.',
+        feature_3_title: 'Direct Student Advocacy',
+        feature_3_desc: 'Submit academic or welfare grievances straight to your faculty representative with transparent status tracking.',
+        announcement_banner: 'Welcome to Semester 2! Verify your student credentials & dues through the Student Portal.',
+        updated_at: new Date().toISOString(),
+      },
+    };
   }
 
   public async query<R extends QueryResultRow = any>(text: string, params: any[] = []): Promise<QueryResult<R>> {
@@ -772,7 +794,9 @@ class PostgresDatabase implements IDatabaseClient {
   constructor(connectionString: string) {
     this.pool = new Pool({
       connectionString,
-      ssl: config.isProduction ? { rejectUnauthorized: false } : undefined,
+      ssl: connectionString.includes('supabase') || connectionString.includes('sslmode=require') || config.isProduction
+        ? { rejectUnauthorized: false }
+        : undefined,
     });
   }
 

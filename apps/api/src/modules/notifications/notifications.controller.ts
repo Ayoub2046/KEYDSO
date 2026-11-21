@@ -26,7 +26,6 @@ export class NotificationsController {
       next(error);
     }
   };
-
   public markAsRead = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const user = req.user as AuthenticatedUser;
@@ -34,7 +33,7 @@ export class NotificationsController {
 
       const notificationId = req.params.id;
       const data = await this.service.markAsRead(notificationId, user.id);
-
+      
       res.json({
         success: true,
         message: 'Notification marked as read',

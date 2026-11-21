@@ -4,20 +4,34 @@ export default {
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
+  corePlugins: {
+    preflight: false,
+  },
   theme: {
     extend: {
       colors: {
         brand: {
           50: '#f0f5fa',
           100: '#e1ecf5',
-          500: '#0284c7',
-          700: '#0369a1',
-          900: '#0c4a6e',
+          500: '#1176BC',
+          600: '#0f67a4',
+          700: '#0c5284',
+          900: '#0B2545',
+        },
+        palette: {
+          blue: '#1176BC',
+          cyan: '#25A8E0',
+          lightGrey: '#ECECEC',
+          softBlue: '#9FBBDE',
+          silver: '#C6CACB',
+          white: '#FFFFFF',
+          navy: '#0B2545',
+          navyDark: '#081C36',
         },
         navy: {
-          800: '#111c30',
-          900: '#0a101d',
-          950: '#060a12',
+          800: '#11223c',
+          900: '#0B2545',
+          950: '#081C36',
         }
       }
     },

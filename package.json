@@ -8,13 +8,19 @@
     "apps/*"
   ],
   "scripts": {
+    "dev": "concurrently -n \"API,WEB\" -c \"cyan,green\" \"npm run dev:api\" \"npm run dev:web\"",
     "build": "npm run build --workspaces --if-present",
     "test": "npm run test --workspaces --if-present",
     "dev:api": "npm run dev --workspace=apps/api",
     "dev:web": "npm run dev --workspace=apps/web",
+    "setup-db": "tsx scripts/setup-db.ts",
     "lint": "npm run lint --workspaces --if-present"
   },
   "devDependencies": {
+    "concurrently": "^10.0.7",
+    "dotenv": "^18.0.10",
+    "pg": "^8.23.1",
+    "tsx": "^4.23.15",
     "typescript": "^5.4.5"
   }
 }

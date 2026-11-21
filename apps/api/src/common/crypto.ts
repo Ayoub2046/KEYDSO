@@ -17,6 +17,15 @@ export async function hashPassword(password: string): Promise<string> {
 }
 
 /**
+ * Synchronous version for seeding in-memory data at startup (safe for non-prod seeding only)
+ */
+export function hashPasswordSync(password: string): string {
+  const salt = crypto.randomBytes(SALT_BYTES).toString('hex');
+  const derivedKey = crypto.scryptSync(password, salt, HASH_BYTES);
+  return `${salt}:${derivedKey.toString('hex')}`;
+}
+
+/**
  * Verifies a plaintext password against a stored salt:hash using constant-time comparison
  */
 export async function verifyPassword(password: string, combinedHash: string): Promise<boolean> {

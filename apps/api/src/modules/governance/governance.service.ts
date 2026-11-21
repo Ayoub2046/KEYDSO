@@ -664,7 +664,62 @@ export class GovernanceService {
       };
     }
 
-    throw new Error('Real db implementation');
+    // Postgres Branch for Council Dashboard
+    const stuCountRes = await db.query('SELECT COUNT(*) as count FROM students');
+    const facCountRes = await db.query('SELECT COUNT(*) as count FROM faculties');
+    const campCountRes = await db.query("SELECT COUNT(*) as count FROM contribution_campaigns WHERE status = 'ACTIVE'");
+    const fundsRes = await db.query('SELECT COALESCE(SUM(current_balance), 0) as total FROM funds');
+    const commCountRes = await db.query('SELECT COUNT(*) as count FROM committees WHERE is_active = true');
+
+    const isExecutive =
+      userRoles.includes(RoleName.GENERAL_PRESIDENT) ||
+      userRoles.includes(RoleName.VICE_PRESIDENT) ||
+      userRoles.includes(RoleName.SYSTEM_ADMIN);
+
+    let issuesQuery = `
+      SELECT i.*, f.name as faculty_name
+      FROM issue_reports i
+      LEFT JOIN faculties f ON f.id = i.faculty_id
+    `;
+    const issuesParams: any[] = [];
+    if (!isExecutive && userFacultyId) {
+      issuesQuery += ' WHERE i.faculty_id = $1';
+      issuesParams.push(userFacultyId);
+    }
+    issuesQuery += ' ORDER BY i.created_at DESC LIMIT 5';
+    const recentIssuesRes = await db.query(issuesQuery, issuesParams);
+
+    let openIssuesCountQuery = "SELECT COUNT(*) as count FROM issue_reports WHERE status IN ('SUBMITTED', 'IN_PROGRESS', 'ASSIGNED')";
+    const openIssuesParams: any[] = [];
+    if (!isExecutive && userFacultyId) {
+      openIssuesCountQuery += ' AND faculty_id = $1';
+      openIssuesParams.push(userFacultyId);
+    }
+    const openIssuesRes = await db.query(openIssuesCountQuery, openIssuesParams);
+
+    const pendingMeetingsRes = await db.query("SELECT COUNT(*) as count FROM meetings_and_trainings WHERE status = 'REQUESTED'");
+    const pendingExpensesRes = await db.query("SELECT COUNT(*) as count FROM expenses WHERE status = 'REQUESTED'");
+
+    const upcomingMeetingsRes = await db.query(`
+      SELECT m.*, f.name as faculty_name
+      FROM meetings_and_trainings m
+      LEFT JOIN faculties f ON f.id = m.faculty_id
+      WHERE m.status IN ('APPROVED', 'REQUESTED')
+      ORDER BY m.created_at DESC LIMIT 5
+    `);
+
+    return {
+      total_students: parseInt(stuCountRes.rows[0]?.count || '0', 10),
+      total_faculties: parseInt(facCountRes.rows[0]?.count || '0', 10),
+      active_campaigns_count: parseInt(campCountRes.rows[0]?.count || '0', 10),
+      total_funds_balance: parseFloat(fundsRes.rows[0]?.total || '0'),
+      active_committees_count: parseInt(commCountRes.rows[0]?.count || '0', 10),
+      open_challenges_count: parseInt(openIssuesRes.rows[0]?.count || '0', 10),
+      pending_meetings_count: parseInt(pendingMeetingsRes.rows[0]?.count || '0', 10),
+      pending_expenses_count: parseInt(pendingExpensesRes.rows[0]?.count || '0', 10),
+      recent_challenges: recentIssuesRes.rows,
+      upcoming_meetings: upcomingMeetingsRes.rows,
+    };
   }
 }
 

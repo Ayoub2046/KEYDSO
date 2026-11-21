@@ -2,8 +2,366 @@
 @tailwind components;
 @tailwind utilities;
 
-@layer base {
-  body {
-    @apply bg-slate-50 text-slate-800 antialiased;
+/* ==========================================================================
+   Keydso Maanta — Ultra-Modern Glassmorphic & Bootstrap 5 Design System
+   ========================================================================== */
+
+:root {
+  --km-primary: #1176BC;
+  --km-primary-glow: rgba(17, 118, 188, 0.4);
+  --km-primary-dark: #0c5284;
+  --km-cyan: #25A8E0;
+  --km-cyan-glow: rgba(37, 168, 224, 0.4);
+  --km-soft-blue: #9FBBDE;
+  --km-border: #C6CACB;
+  --km-bg: #ECECEC;
+  --km-surface: #FFFFFF;
+  --km-navy-950: #081C36;
+  --km-navy-900: #0B2545;
+  --km-navy-850: #0e2d53;
+  --km-navy-800: #123764;
+  --km-glass-bg: rgba(255, 255, 255, 0.85);
+  --km-glass-border: rgba(198, 202, 203, 0.4);
+  --km-glass-dark-bg: rgba(11, 37, 69, 0.9);
+  --km-glass-dark-border: rgba(159, 187, 222, 0.2);
+}
+
+body {
+  background-color: var(--km-bg);
+  color: #1e293b;
+  font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+/* ==========================================================================
+   Glassmorphism Styles & Utilities
+   ========================================================================== */
+
+/* Light Theme Frosted Glass */
+.glass-panel {
+  background: var(--km-glass-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--km-glass-border);
+  box-shadow: 0 10px 30px 0 rgba(15, 23, 42, 0.05);
+}
+
+/* Dark Theme Frosted Glass */
+.glass-panel-dark {
+  background: var(--km-glass-dark-bg);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--km-glass-dark-border);
+  box-shadow: 0 20px 45px 0 rgba(0, 0, 0, 0.45);
+}
+
+/* Subtle Neon Glass Glow */
+.glass-glow-primary {
+  box-shadow: 0 0 25px rgba(2, 132, 199, 0.35), 0 0 5px rgba(2, 132, 199, 0.2);
+}
+
+.glass-glow-success {
+  box-shadow: 0 0 25px rgba(16, 185, 129, 0.35), 0 0 5px rgba(16, 185, 129, 0.2);
+}
+
+/* Interactive Glass Card Hover */
+.glass-card-hover {
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.glass-card-hover:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 15px 35px -5px rgba(15, 23, 42, 0.12), 0 0 15px rgba(2, 132, 199, 0.15) !important;
+  border-color: rgba(2, 132, 199, 0.35) !important;
+}
+
+/* Form Controls with Glassmorphic Feel */
+.form-control, .form-select {
+  border-radius: 0.6rem;
+  border: 1px solid #cbd5e1;
+  padding: 0.625rem 0.875rem;
+  font-size: 0.875rem;
+  background-color: #ffffff;
+  transition: all 0.2s ease-in-out;
+}
+
+.form-control:focus, .form-select:focus {
+  border-color: var(--km-primary);
+  box-shadow: 0 0 0 0.25rem rgba(2, 132, 199, 0.18);
+  outline: none;
+}
+
+.form-control-glass-dark {
+  background-color: rgba(16, 28, 51, 0.7) !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  color: #ffffff !important;
+  backdrop-filter: blur(10px);
+}
+
+.form-control-glass-dark:focus {
+  background-color: rgba(16, 28, 51, 0.9) !important;
+  border-color: #38bdf8 !important;
+  box-shadow: 0 0 0 0.25rem rgba(56, 189, 248, 0.25) !important;
+}
+
+.form-control-glass-dark::placeholder {
+  color: rgba(255, 255, 255, 0.45) !important;
+}
+
+/* Gradient Text */
+.gradient-text-sky {
+  background: linear-gradient(135deg, #38bdf8 0%, #818cf8 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.gradient-text-gold {
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* ==========================================================================
+   Sidebar Transitions & Collapsible Rails
+   ========================================================================== */
+
+.sidebar-container {
+  transition: width 0.24s cubic-bezier(0.4, 0, 0.2, 1), transform 0.24s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: width, transform;
+}
+
+.sidebar-expanded {
+  width: 260px;
+}
+
+.sidebar-collapsed {
+  width: 76px;
+}
+
+/* Collapsed Mini Nav Items Tooltips */
+.sidebar-collapsed .nav-item-text {
+  display: none !important;
+}
+
+.sidebar-collapsed .nav-section-title {
+  display: none !important;
+}
+
+.sidebar-collapsed .nav-link {
+  justify-content: center !important;
+  padding: 0.65rem 0 !important;
+}
+
+.sidebar-collapsed .nav-link i {
+  font-size: 1.25rem !important;
+  margin: 0 !important;
+}
+
+/* Nav Item Active & Hover Indicator */
+.km-nav-link {
+  position: relative;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  border-radius: 0.65rem;
+  color: rgba(255, 255, 255, 0.65);
+}
+
+.km-nav-link:hover {
+  background-color: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+  transform: translateX(2px);
+}
+
+.km-nav-link.active {
+  background: #1176BC;
+  color: #ffffff !important;
+  box-shadow: 0 4px 15px rgba(17, 118, 188, 0.45);
+}
+
+.km-nav-link.active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 15%;
+  height: 70%;
+  width: 3.5px;
+  background-color: #25A8E0;
+  border-radius: 0 4px 4px 0;
+  box-shadow: 0 0 8px #25A8E0;
+}
+
+/* Mobile Off-Canvas Sidebar */
+@media (max-width: 991.98px) {
+  .sidebar-mobile {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 1045;
+    width: 280px !important;
+    transform: translateX(-100%);
+    box-shadow: 10px 0 35px rgba(0, 0, 0, 0.5);
   }
+
+  .sidebar-mobile.mobile-open {
+    transform: translateX(0);
+  }
+
+  .mobile-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.55);
+    backdrop-filter: blur(4px);
+    z-index: 1040;
+    animation: fadeIn 0.2s ease-in-out;
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* ==========================================================================
+   Refined Buttons & Components
+   ========================================================================== */
+
+.btn {
+  font-weight: 550;
+  border-radius: 0.55rem;
+  letter-spacing: 0.01em;
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.btn-primary {
+  background-color: var(--km-primary);
+  border-color: var(--km-primary);
+  box-shadow: 0 2px 6px rgba(2, 132, 199, 0.25);
+}
+
+.btn-primary:hover, .btn-primary:focus {
+  background-color: var(--km-primary-dark);
+  border-color: var(--km-primary-dark);
+  box-shadow: 0 4px 14px rgba(2, 132, 199, 0.4);
+  transform: translateY(-1px);
+}
+
+.btn-primary:active {
+  transform: translateY(0);
+}
+
+/* Card Modernization */
+.card {
+  border-radius: 0.85rem;
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+/* Tables */
+.table {
+  vertical-align: middle;
+}
+
+.table thead th {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #64748b;
+  background-color: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
+  padding: 0.9rem 1.1rem;
+}
+
+.table tbody td {
+  padding: 0.9rem 1.1rem;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.table-hover tbody tr:hover {
+  background-color: rgba(2, 132, 199, 0.035);
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.4);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.7);
+}
+
+/* Animated Pulse Badge */
+.pulse-badge {
+  position: relative;
+}
+
+.pulse-badge::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: inherit;
+  box-shadow: 0 0 0 0 rgba(2, 132, 199, 0.7);
+  animation: pulseAnimation 2s infinite;
+}
+
+@keyframes pulseAnimation {
+  0% { box-shadow: 0 0 0 0 rgba(2, 132, 199, 0.7); }
+  70% { box-shadow: 0 0 0 8px rgba(2, 132, 199, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(2, 132, 199, 0); }
+}
+
+/* ==========================================================================
+   Palette Utility Classes & Dashboard Shell
+   ========================================================================== */
+
+.bg-km-navy { background-color: #0B2545 !important; }
+.bg-km-navy-dark { background-color: #081C36 !important; }
+.bg-km-primary { background-color: #1176BC !important; }
+.bg-km-cyan { background-color: #25A8E0 !important; }
+.bg-km-light { background-color: #ECECEC !important; }
+.bg-km-soft { background-color: #9FBBDE !important; }
+.border-km-silver { border-color: #C6CACB !important; }
+.text-km-primary { color: #1176BC !important; }
+.text-km-cyan { color: #25A8E0 !important; }
+.text-km-soft { color: #9FBBDE !important; }
+
+.dashboard-card {
+  background-color: #FFFFFF;
+  border-radius: 0.85rem;
+  border: 1px solid rgba(198, 202, 203, 0.5);
+  box-shadow: 0 2px 10px rgba(11, 37, 69, 0.035);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.dashboard-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(17, 118, 188, 0.08);
+}
+
+.dashboard-stat-icon {
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.75rem;
+  flex-shrink: 0;
 }

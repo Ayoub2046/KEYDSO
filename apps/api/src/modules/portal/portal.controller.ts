@@ -59,6 +59,15 @@ export class PortalController {
       next(err);
     }
   }
+
+  public async getLandingSettings(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const settings = await portalService.getLandingSettings();
+      sendSuccess(res, settings, 'Landing page settings retrieved');
+    } catch (err) {
+      next(err);
+    }
+  }
 }
 
 export const portalController = new PortalController();

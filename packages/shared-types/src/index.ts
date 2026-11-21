@@ -707,6 +707,26 @@ export interface WebPushSubscription {
   created_at: string;
 }
 
+// --- Dynamic Landing Page / CMS Settings ---
+export interface LandingPageSettings {
+  hero_title: string;
+  hero_subtitle: string;
+  badge_text: string;
+  background_image_url: string;
+  background_overlay_opacity: number;
+  stat_students_count: string;
+  stat_treasury_amount: string;
+  stat_audit_rate: string;
+  feature_1_title: string;
+  feature_1_desc: string;
+  feature_2_title: string;
+  feature_2_desc: string;
+  feature_3_title: string;
+  feature_3_desc: string;
+  announcement_banner?: string | null;
+  updated_at?: string;
+}
+
 // --- API Standard Wrappers ---
 export interface ApiResponse<T = unknown> {
   success: boolean;

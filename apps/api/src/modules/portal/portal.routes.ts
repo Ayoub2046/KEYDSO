@@ -4,6 +4,10 @@ import { authGuard } from '../../security/auth.guard';
 
 export const portalRouter = Router();
 
+// Public routes for landing page / visitors
+portalRouter.get('/landing-settings', (req, res, next) => portalController.getLandingSettings(req, res, next));
+
+// Protected student portal routes
 portalRouter.use(authGuard);
 
 portalRouter.get('/overview', (req, res, next) => portalController.getOverview(req, res, next));

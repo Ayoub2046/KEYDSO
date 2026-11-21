@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { adminService } from './admin.service';
 import { sendSuccess, sendPaginated } from '../../common/response';
-import { AssignFacultyRepSchema } from '@keydso/validation';
+import { AssignFacultyRepSchema, LandingSettingsSchema } from '@keydso/validation';
 
 export class AdminController {
   public async getUsers(req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -38,6 +38,16 @@ export class AdminController {
       const pageSize = req.query.page_size ? parseInt(req.query.page_size as string, 10) : 30;
       const { items, total } = await adminService.getAuditLogs(page, pageSize);
       sendPaginated(res, items, total, page, pageSize, 'Audit logs retrieved');
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  public async updateLandingSettings(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const validated = LandingSettingsSchema.parse(req.body);
+      const settings = await adminService.updateLandingSettings(validated, req.user!.id);
+      sendSuccess(res, settings, 'Landing page settings updated successfully');
     } catch (err) {
       next(err);
     }

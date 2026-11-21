@@ -3,7 +3,8 @@ import { db, InMemoryDatabase } from '../../database/db';
 import { recordAudit } from '../../database/audit';
 import { ConflictError, NotFoundError, BadRequestError } from '../../common/errors';
 import { hashPassword } from '../../common/crypto';
-import { RoleName } from '@keydso/shared-types';
+import { RoleName, LandingPageSettings } from '@keydso/shared-types';
+import { LandingSettingsInput } from '@keydso/validation';
 
 export class AdminService {
   public async getUsers() {
@@ -223,6 +224,44 @@ export class AdminService {
       [pageSize, (page - 1) * pageSize]
     );
     return { items: res.rows, total, page, pageSize };
+  }
+
+  public async updateLandingSettings(data: LandingSettingsInput, actorId: string): Promise<LandingPageSettings> {
+    const updated: LandingPageSettings = {
+      ...data,
+      updated_at: new Date().toISOString(),
+    };
+
+    if (db instanceof InMemoryDatabase) {
+      if (!db.siteSettings) db.siteSettings = {};
+      db.siteSettings.landing_page = updated;
+    } else {
+      await db.query(`
+        CREATE TABLE IF NOT EXISTS site_settings (
+          key VARCHAR(100) PRIMARY KEY,
+          value JSONB NOT NULL,
+          updated_at TIMESTAMPTZ DEFAULT NOW(),
+          updated_by UUID
+        )
+      `);
+
+      await db.query(`
+        INSERT INTO site_settings (key, value, updated_at, updated_by)
+        VALUES ('landing_page', $1, NOW(), $2)
+        ON CONFLICT (key) DO UPDATE
+        SET value = EXCLUDED.value, updated_at = NOW(), updated_by = EXCLUDED.updated_by
+      `, [JSON.stringify(updated), actorId]);
+    }
+
+    await recordAudit({
+      actor_id: actorId,
+      action: 'UPDATE_LANDING_SETTINGS',
+      entity_type: 'SITE_SETTINGS',
+      entity_id: 'landing_page',
+      new_state: { ...updated },
+    });
+
+    return updated;
   }
 }
 

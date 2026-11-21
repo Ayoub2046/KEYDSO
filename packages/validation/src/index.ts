@@ -2,8 +2,8 @@ import { z } from 'zod';
 
 // --- Authentication Schemas ---
 export const LoginSchema = z.object({
-  email: z.string().trim().email('Invalid email address format'),
-  password: z.string().min(8, 'Password must be at least 8 characters long'),
+  email: z.string().trim().min(3, 'Email address or Student ID is required'),
+  password: z.string().min(4, 'Password must be at least 4 characters long'),
 });
 export type LoginInput = z.infer<typeof LoginSchema>;
 
@@ -11,10 +11,9 @@ export const PasswordChangeSchema = z.object({
   current_password: z.string().min(1, 'Current password is required'),
   new_password: z
     .string()
-    .min(8, 'New password must be at least 8 characters')
-    .regex(/[A-Z]/, 'New password must contain at least one uppercase letter')
-    .regex(/[0-9]/, 'New password must contain at least one number'),
+    .min(6, 'New password must be at least 6 characters'),
 });
+export type PasswordChangeInput = z.infer<typeof PasswordChangeSchema>;
 
 // --- Academic Hierarchy Schemas ---
 export const AcademicYearSchema = z.object({
@@ -374,4 +373,23 @@ export const CreateNotificationSchema = z.object({
 });
 export type CreateNotificationInput = z.infer<typeof CreateNotificationSchema>;
 
+// --- Landing Page CMS Settings Schema ---
+export const LandingSettingsSchema = z.object({
+  hero_title: z.string().trim().min(3, 'Title is required').max(200),
+  hero_subtitle: z.string().trim().min(5, 'Subtitle is required').max(500),
+  badge_text: z.string().trim().min(2, 'Badge is required').max(100),
+  background_image_url: z.string().trim().min(5, 'Background image URL is required'),
+  background_overlay_opacity: z.number().min(0).max(1).default(0.75),
+  stat_students_count: z.string().trim().min(1).max(50),
+  stat_treasury_amount: z.string().trim().min(1).max(50),
+  stat_audit_rate: z.string().trim().min(1).max(50),
+  feature_1_title: z.string().trim().min(2).max(100),
+  feature_1_desc: z.string().trim().min(5).max(300),
+  feature_2_title: z.string().trim().min(2).max(100),
+  feature_2_desc: z.string().trim().min(5).max(300),
+  feature_3_title: z.string().trim().min(2).max(100),
+  feature_3_desc: z.string().trim().min(5).max(300),
+  announcement_banner: z.string().trim().max(300).optional().nullable(),
+});
+export type LandingSettingsInput = z.infer<typeof LandingSettingsSchema>;
 

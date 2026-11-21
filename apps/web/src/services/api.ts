@@ -32,9 +32,10 @@ import {
   AuditExportReport,
   InAppNotification,
   NotificationCenterOverview,
+  LandingPageSettings,
 } from '@keydso/shared-types';
 
-const API_BASE = '/api/v1';
+const API_BASE = import.meta.env.VITE_API_BASE_URL || '/api/v1';
 
 function getAuthHeader(): Record<string, string> {
   const token = localStorage.getItem('keydso_token');
@@ -48,12 +49,26 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
     ...options.headers,
   };
 
-  const response = await fetch(`${API_BASE}${path}`, {
-    ...options,
-    headers,
-  });
+  let response: Response;
+  try {
+    response = await fetch(`${API_BASE}${path}`, {
+      ...options,
+      headers,
+    });
+  } catch (networkErr: any) {
+    throw new Error('Cannot connect to server. Please ensure the API is running on port 4000.');
+  }
 
-  const payload: ApiResponse<T> = await response.json();
+  let payload: ApiResponse<T>;
+  try {
+    payload = await response.json();
+  } catch {
+    throw new Error(
+      response.ok
+        ? 'Server returned an unexpected empty response.'
+        : `Server error ${response.status}: ${response.statusText}`
+    );
+  }
 
   if (!response.ok || !payload.success) {
     const errorMsg = (payload as any).error?.message || payload.message || 'API request failed';
@@ -67,9 +82,14 @@ export const api = {
   // Auth
   login: (data: { email: string; password: string }) =>
     request<any>('/auth/login', { method: 'POST', body: JSON.stringify(data) }),
+  changePassword: (data: { current_password: string; new_password: string }) =>
+    request<{ updated: boolean }>('/auth/change-password', { method: 'POST', body: JSON.stringify(data) }),
   getMe: () => request<UserProfile & { roles: RoleName[]; assigned_faculty_id?: string }>('/auth/me'),
 
   // Student Portal
+  getLandingSettings: () => request<LandingPageSettings>('/portal/landing-settings'),
+  updateLandingSettings: (data: LandingPageSettings) =>
+    request<LandingPageSettings>('/admin/landing-settings', { method: 'PUT', body: JSON.stringify(data) }),
   getPortalOverview: () => request<StudentPortalOverview>('/portal/overview'),
   getRepresentatives: (facultyId?: string) =>
     request<RepresentativeInfo[]>(facultyId ? `/portal/representatives?faculty_id=${facultyId}` : '/portal/representatives'),
