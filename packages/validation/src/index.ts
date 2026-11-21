@@ -390,5 +390,17 @@ export const LandingSettingsSchema = z.object({
   feature_3_title: z.string().trim().max(100).optional(),
   feature_3_desc: z.string().trim().max(500).optional(),
   announcement_banner: z.string().trim().max(300).optional().nullable(),
-});
+  cta_primary_text: z.string().trim().max(100).optional(),
+  cta_primary_link: z.string().trim().max(255).optional(),
+  cta_secondary_text: z.string().trim().max(100).optional(),
+  cta_secondary_link: z.string().trim().max(255).optional(),
+  sections_visibility: z.record(z.boolean()).optional(),
+  stats_items: z.array(z.any()).optional(),
+  features_items: z.array(z.any()).optional(),
+  leaders_items: z.array(z.any()).optional(),
+  faq_items: z.array(z.any()).optional(),
+  footer_text: z.string().trim().max(500).optional(),
+  contact_email: z.string().trim().max(150).optional(),
+  contact_phone: z.string().trim().max(50).optional(),
+}).passthrough();
 export type LandingSettingsInput = z.infer<typeof LandingSettingsSchema>;

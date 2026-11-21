@@ -472,7 +472,7 @@ export const LoginPage: React.FC = () => {
                   onChange={(e) => setIdentifier(e.target.value)}
                   onFocus={handleFocus}
                   onBlur={handleBlur}
-                  placeholder={isStudent ? 'e.g. cis231660' : 'officer@keydso.university.edu'}
+                  placeholder={isStudent ? 'Student ID Number' : 'Institutional Email Address'}
                   autoComplete="username"
                   style={inputBaseStyle}
                 />
@@ -553,7 +553,7 @@ export const LoginPage: React.FC = () => {
                   onChange={(e) => setPassword(e.target.value)}
                   onFocus={handleFocus}
                   onBlur={handleBlur}
-                  placeholder="••••••••••••"
+                  placeholder="Password"
                   autoComplete="current-password"
                   style={{ ...inputBaseStyle, paddingRight: '48px' }}
                 />

@@ -708,6 +708,46 @@ export interface WebPushSubscription {
 }
 
 // --- Dynamic Landing Page / CMS Settings ---
+export interface LandingStatItem {
+  id: string;
+  label: string;
+  value: string;
+  icon?: string;
+  color?: string;
+}
+
+export interface LandingFeatureItem {
+  id: string;
+  title: string;
+  description: string;
+  icon?: string;
+  badge?: string;
+}
+
+export interface LandingLeaderItem {
+  id: string;
+  name: string;
+  role: string;
+  faculty?: string;
+  photo_url?: string;
+}
+
+export interface LandingFaqItem {
+  id: string;
+  question: string;
+  answer: string;
+}
+
+export interface LandingSectionVisibility {
+  announcement?: boolean;
+  hero?: boolean;
+  stats?: boolean;
+  features?: boolean;
+  governance?: boolean;
+  faq?: boolean;
+  footer?: boolean;
+}
+
 export interface LandingPageSettings {
   hero_title: string;
   hero_subtitle: string;
@@ -724,6 +764,18 @@ export interface LandingPageSettings {
   feature_3_title: string;
   feature_3_desc: string;
   announcement_banner?: string | null;
+  cta_primary_text?: string;
+  cta_primary_link?: string;
+  cta_secondary_text?: string;
+  cta_secondary_link?: string;
+  sections_visibility?: LandingSectionVisibility;
+  stats_items?: LandingStatItem[];
+  features_items?: LandingFeatureItem[];
+  leaders_items?: LandingLeaderItem[];
+  faq_items?: LandingFaqItem[];
+  footer_text?: string;
+  contact_email?: string;
+  contact_phone?: string;
   updated_at?: string;
 }
 
